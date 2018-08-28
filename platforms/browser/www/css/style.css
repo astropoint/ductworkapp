@@ -1,0 +1,168 @@
+#loginBody{
+	background: #808080;
+}
+
+#wrapper {
+	height: 50%;
+	margin: 5%;
+	background: #dddddd;
+	border: 2px solid;
+	padding: 2%;
+}
+
+form {
+	margin: 30px auto;
+}
+
+.textInput {
+	border: none;
+	height: 28px;
+	margin: 2px;
+	border: 1px solid #808080;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size: 1.2em;
+	padding: 5px;
+	width: 95%;
+}
+
+.textInput:focus {
+	outline: none;
+}
+
+.btn {
+	width: 98.6%;
+	border: none;
+	margin-top: 5px;
+	transition: 0.3s;
+	color: black;
+	background-color: #ffffcc;
+	border: 5px solid #fae014;
+	border-radius: 5% 30%;
+	padding: 12px;
+}
+
+#usernameDiv{
+	font-family:Arial, Helvetica, sans-serif;
+}
+
+#passwordDiv{
+	font-family:Arial, Helvetica, sans-serif;
+}
+
+#comapnyName{
+	margin: auto;
+	width: 100%;
+	background-color: #fae014;
+	padding: 5%;
+
+}
+
+#welcome{
+	font-family:Arial, Helvetica, sans-serif;
+	text-align: center;
+	font-size: 150%;
+	color: black;
+}
+
+.menu {
+	text-align: center;
+	margin-top: 5%;
+	font-size: 8vw;
+	color: black;
+
+}
+
+.menu a{
+	background-color: #ffffcc;
+	border: 5px solid #fae014;
+	opacity: 0.8;
+	transition: 0.3s;
+	cursor: pointer;
+	padding: 4% 4%;
+	text-decoration: none;
+	border-radius: 5% 30%;
+	color: black !important;
+}
+
+.menu a:hover{
+	background-color: #ffa366;
+	color: white;
+	opacity: 1;
+	text-decoration: none;
+}
+
+#version {
+	text-align: center;
+	padding-top: 5%;
+	bottom: 10px;
+	opacity: 0.5;
+	clear:both;
+}
+
+#topnav {
+	overflow: hidden;
+	background-color: #333333;
+	width: 100%;
+	margin: 1px auto;
+	padding:0;
+	list-style: none;
+	text-align: center;
+	height: 20%;
+}
+
+#topnav a {
+	float: left;
+	color: #f2f2f2;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	display:inline-block;
+	margin: 0.5%;
+	padding: 12px 0 13px 0;
+	border: 1px solid white;
+}
+
+#topnav a:hover {
+	background-color: #dddddd;
+	color:black;
+}
+
+#topnav a.active {
+	background-color: #dddddd;
+	color:white;
+}
+
+#topnav a.active.hover {
+	background-color:#dddddd;
+	color: black;
+}
+
+.full_name {
+	font-size: 5vmin;
+	width: 90%;
+}
+
+#refr {
+	font-size: 5vmin;
+	border-radius: 5%;
+	width: 90%;
+	background-color: #00CED1;
+}
+
+#topnav i{
+	height: inherit;
+	text-align: center;
+	top: 0;
+}
+
+#Home{
+	font-size: 5vmin;
+	height: inherit;
+	border-radius: 10%;
+	width: 90%;
+}
+
+#noworkorders{
+	font-size: 1.5em;
+	text-align:center;
+}
