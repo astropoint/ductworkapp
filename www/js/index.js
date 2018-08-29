@@ -528,7 +528,7 @@ $(document).on('click', '.downloadsafetydoc', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	
 	if(isInternet){
-		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey
+		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey;
 		
 		try{
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 5 * 1024 * 1024, function (fs) {
@@ -562,11 +562,13 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 
 	var fileTransfer = new FileTransfer();
 	var fileURL = fileEntry.toURL();
+	alert("1");
 	fileTransfer.download(
 		uri,
 		fileURL,
 		function (entry) {
 			localStorage.setItem('workorder-'+type+'-'+workorderid, entry.toURL());
+	alert("2");
 			readFile(workorderid, type);
 		},
 		function (error) {
@@ -587,6 +589,7 @@ function readFile(type, workorderid){
 	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
 	if(path!=''){
 		try{
+	alert("3");
 			cordova.plugins.fileOpener2.open(
 					path, 
 					'application/pdf', 
