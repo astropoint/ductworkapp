@@ -475,7 +475,7 @@ function refreshSchedulePage(workorderidwithnote, note){
 			output += "<button class='btn-default downloadworkorderpdf' style='float:right' id='getpdf-"+workorder.id+"'>Download PDF</button>";
 			output += "<br> ID: "+ workorder.id;
 			output += "<div class='address'>Address: <br />"+workorder.location_name + '<br>' + workorder.address1 + '<br>' + workorder.city + '<br>' + workorder.postcode +"</div>";
-			output += "With: "+workorder.otheremployees + '<br>';
+			output += "<div class='withtext'>With: "+workorder.otheremployees.toString().replace(/,/g, ", ") + '</div>';
 			output += "<button class='";
 			//to enable button, both arrive and depart must be blank
 			if(workorder.site_arrive=='' && workorder.site_leave==''){

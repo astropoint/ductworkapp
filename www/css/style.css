@@ -229,3 +229,9 @@ form {
 a{
 	text-shadow: none;
 }
+
+.withtext{
+	line-height: 1;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
