@@ -33,7 +33,7 @@ var destinationType;
 function onDeviceReady(){
 		pictureSource=navigator.camera.PictureSourceType;
 		destinationType=navigator.camera.DestinationType;
-		 $('#output2').html(JSON.stringify(cordova.plugins));
+		$('#output2').html(JSON.stringify(cordova.plugins));
 		try{
 			cordova.getAppVersion.getVersionNumber(function (version) {
 					$('.versionnumber').html(version);
@@ -384,6 +384,8 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 		}catch(error){
 			alert(error);
 		}
+	}else{
+		readFile(workorderid);
 	}
 	
 });
@@ -425,8 +427,6 @@ function readFile(workorderid){
 	var path = localStorage.getItem('workorderfile-'+workorderid);
 	if(path!=''){
 		try{
-			alert(path);
-			alert(cordova.plugins.fileOpener2);
 			cordova.plugins.fileOpener2.open(
 					path, 
 					'application/pdf', 
@@ -440,13 +440,13 @@ function readFile(workorderid){
 		}catch(error){
 			alert(error);
 		}
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-success');
+		$('#apiresponse-'+workorderid).addClass('alert-danger');
+		$('#apiresponse-'+workorderid).show();
+		$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
 	}
 }
-
-
-
-
-
 
 
 
