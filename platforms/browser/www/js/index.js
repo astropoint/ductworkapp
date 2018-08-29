@@ -567,7 +567,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 		uri,
 		fileURL,
 		function (entry) {
-			localStorage.setItem('workorder-'+type+'-'+workorderid, entry.toURL());
+			localStorage.setItem('workorder-'+type+'-'+workorderid+'.pdf', entry.toURL());
 	alert("2");
 			readFile(workorderid, type);
 		},
@@ -586,10 +586,10 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 }
 
 function readFile(type, workorderid){
-	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
+	var path = localStorage.getItem('workorder-'+type+'-'+workorderid+'.pdf');
 	if(path!=''){
 		try{
-	alert("3");
+	alert(path);
 			cordova.plugins.fileOpener2.open(
 					path, 
 					'application/pdf', 
