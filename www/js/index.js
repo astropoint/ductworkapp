@@ -588,6 +588,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 
 function readFile(workorderid, type){
 	var path = localStorage.getItem('workorder-'+type+'-'+workorderid+'.pdf');
+	
 	if(path!==null && path!=''){
 		try{
 			
@@ -596,13 +597,15 @@ function readFile(workorderid, type){
 					'application/pdf', 
 					{
 							error : function(error){
-								cannotOpenFile(workorderid, 'Error opening file on filesystem');
+								alert(path);
+								cannotOpenFile(workorderid, 'Error opening file on filesystem 1: '+ error);
 							}, 
 							success : function(){ } 
 					} 
 			);
 		}catch(error){
-			cannotOpenFile(workorderid, 'Error opening file on filesystem');
+			alert(path);
+			cannotOpenFile(workorderid, 'Error opening file on filesystem 2:'+error);
 		}
 	}else{
 		cannotOpenFile(workorderid, 'The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
