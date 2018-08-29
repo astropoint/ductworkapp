@@ -279,7 +279,10 @@ function refreshSchedulePage(workorderidwithnote, note){
 			output += "<div id='page-"+key+"' class='workordercard'>";
 			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
 			output += "<div style='float:right;text-align:right'><button class='btn-default downloadworkorderpdf' id='getpdf-"+workorder.id+"'>Job Sheet</button>";
-			output += "<br><button class='btn-default downloadsafetydoc' id='safetydoc-"+workorder.id+"'>Safety Document</button></div>";
+			if(workorder.safety_doc_id!==null && workorder.safety_doc_id!=''){
+				output += "<br><button class='btn-default downloadsafetydoc' id='safetydoc-"+workorder.id+"'>Safety Document</button>";
+			}
+			output += "</div>";
 			output += "<div class='workordertype'>Workorder "+ workorder.id;
 			output += "<br>"+workorder.workorder_type+" - "+workorder.short_description+"</div>";
 			output += "<div class='address'>"+workorder.location_name + '<br>' + workorder.address1 + '<br>' + workorder.city + '<br>' + workorder.postcode +"</div>";
@@ -593,24 +596,24 @@ function readFile(workorderid, type){
 					'application/pdf', 
 					{
 							error : function(error){
-								cannotOpenFile(workorderid);
+								cannotOpenFile(workorderid, 'Error opening file on filesystem');
 							}, 
 							success : function(){ } 
 					} 
 			);
 		}catch(error){
-			cannotOpenFile(workorderid);
+			cannotOpenFile(workorderid, 'Error opening file on filesystem');
 		}
 	}else{
-		cannotOpenFile(workorderid);
+		cannotOpenFile(workorderid, 'The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
 	}
 }
 
-function cannotOpenFile(workorderid){
+function cannotOpenFile(workorderid, message){
 	$('#apiresponse-'+workorderid).removeClass('alert-success');
 	$('#apiresponse-'+workorderid).addClass('alert-danger');
 	$('#apiresponse-'+workorderid).show();
-	$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
+	$('#apiresponse-'+workorderid).html(message);
 }
 
 
