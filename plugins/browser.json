@@ -33,6 +33,9 @@
         },
         "cordova-plugin-document-viewer": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
+        },
+        "cordova-plugin-pdf-viewer": {
+            "PACKAGE_NAME": "com.jmdb.ductwork"
         }
     },
     "dependent_plugins": {

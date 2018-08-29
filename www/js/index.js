@@ -424,37 +424,13 @@ function download(fileEntry, uri, readBinaryData, workorderid) {
 function readFile(workorderid){
 	var path = localStorage.getItem('workorderfile-'+workorderid);
 	if(path!=''){
-		var options = {};
-		var mimeType = 'application/pdf';
-		var linkHandlers = [];
-		alert(cordova.plugins.SitewaertsDocumentViewer);
 		try{
-			cordova.plugins.SitewaertsDocumentViewer.viewDocument(
-				path, mimeType, options, onFileShow, onFileClose, onFileMissingApp, onFileError, linkHandlers);
+			PDFViewer.openPDF(path);
 		}catch(error){
 			alert(error);
 		}
 	}
 }
-
-function onFileShow(){
-		alert("7");
-}
-function onFileClose(){
-	alert("8");
-}
-
-function onFileMissingApp(){
-	alert("You need to dowload a pdf viewer from the play store before you can open pdf files");
-}
-
-function onFileError(error){
-	alert("Unable to open file:" + error);
-}
-
-function linkHandlers(){}
-
-
 
 
 

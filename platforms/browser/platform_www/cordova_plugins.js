@@ -319,6 +319,14 @@ module.exports = [
             "cordova.plugins.SitewaertsDocumentViewer",
             "SitewaertsDocumentViewer"
         ]
+    },
+    {
+        "file": "plugins/cordova-plugin-pdf-viewer/www/pdfviewer.js",
+        "id": "cordova-plugin-pdf-viewer.PDFViewer",
+        "pluginId": "cordova-plugin-pdf-viewer",
+        "clobbers": [
+            "PDFViewer"
+        ]
     }
 ];
 module.exports.metadata = 
@@ -333,7 +341,8 @@ module.exports.metadata =
     "cordova-plugin-network-information": "1.2.1",
     "cordova-plugin-whitelist": "1.2.2",
     "cordova-plugin-file-transfer": "1.7.1",
-    "cordova-plugin-document-viewer": "0.9.10"
+    "cordova-plugin-document-viewer": "0.9.10",
+    "cordova-plugin-pdf-viewer": "0.0.1"
 }
 // BOTTOM OF METADATA
 });
