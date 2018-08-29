@@ -564,28 +564,32 @@ function onErrorCreateFile(error){
 }
 
 function download(fileEntry, uri, readBinaryData, workorderid, type) {
-
-	var fileTransfer = new FileTransfer();
-	var fileURL = fileEntry.toURL();
-	fileTransfer.download(
-		uri,
-		fileURL,
-		function (entry) {
-			localStorage.setItem('workorder-'+type+'-'+workorderid+'.pdf', entry.toURL());
-			readFile(workorderid, type);
-		},
-		function (error) {
-			console.log("download error source " + error.source);
-			console.log("download error target " + error.target);
-			console.log("upload error code" + error.code);
-		},
-		null, // or, pass false
-		{
-			//headers: {
-			//    "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
-			//}
-		}
-	);
+	
+	if(isInternet){
+		var fileTransfer = new FileTransfer();
+		var fileURL = fileEntry.toURL();
+		fileTransfer.download(
+			uri,
+			fileURL,
+			function (entry) {
+				localStorage.setItem('workorder-'+type+'-'+workorderid+'.pdf', entry.toURL());
+				readFile(workorderid, type);
+			},
+			function (error) {
+				console.log("download error source " + error.source);
+				console.log("download error target " + error.target);
+				console.log("upload error code" + error.code);
+			},
+			null, // or, pass false
+			{
+				//headers: {
+				//    "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
+				//}
+			}
+		);
+	}else{
+		//don't download anything if there is no internet connection
+	}
 }
 
 function readFile(workorderid, type){
