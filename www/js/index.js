@@ -33,7 +33,7 @@ var destinationType;
 function onDeviceReady(){
 		pictureSource=navigator.camera.PictureSourceType;
 		destinationType=navigator.camera.DestinationType;
-		$('#output2').html(JSON.stringify(cordova.plugins));
+		
 		try{
 			cordova.getAppVersion.getVersionNumber(function (version) {
 					$('.versionnumber').html(version);
@@ -474,7 +474,7 @@ function refreshSchedulePage(workorderidwithnote, note){
 			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
 			output += "<button class='btn-default downloadworkorderpdf' style='float:right' id='getpdf-"+workorder.id+"'>Download PDF</button>";
 			output += "<br> ID: "+ workorder.id;
-			output += "<div class='address'>Address: <br />"+workorder.location_name + '<br>' + workorder.address1 + workorder.city + '<br>' + workorder.postcode +"</div>";
+			output += "<div class='address'>Address: <br />"+workorder.location_name + '<br>' + workorder.address1 + '<br>' + workorder.city + '<br>' + workorder.postcode +"</div>";
 			output += "With: "+workorder.otheremployees + '<br>';
 			output += "<button class='";
 			//to enable button, both arrive and depart must be blank
