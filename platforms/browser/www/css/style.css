@@ -166,3 +166,66 @@ form {
 	font-size: 1.5em;
 	text-align:center;
 }
+
+.workordercard{
+	width: auto;
+	padding: 1% !important;
+	background-color: #dddddd;
+	margin-top: 2%;
+	text-align:left;
+	margin-left: 1%;
+	margin-right: 1%;
+	font-size: 4vw;
+	border-style: solid;
+	border-width: 3px;
+	line-height: 1.8;
+}
+
+.start_date{
+	position: relative;
+	top: 0px;
+	left: 0px;
+	background-color: #fae014;
+	display: inline-block;
+	float:left;
+	text-align: center;
+}
+
+.arrivebutton {
+	background-color: white;
+	color: black;
+	border: 3px solid green;
+	border-radius: 12px;
+	text-align: center;
+	margin: 5px;
+	padding-right: 5px;
+}
+
+.departbutton {
+	background-color: white;
+	color: black;
+	border: 3px solid red;
+	border-radius: 12px;
+	text-align: center;
+	margin: 5px;
+	padding-right: 5px;
+	float: right;
+}
+
+.disabled{
+	background-color: grey;
+	color: black;
+	border: 3px solid black;
+	border-radius: 12px;
+	text-align: center;
+	margin: 5px;
+	padding-right: 5px;
+}
+
+.address{
+	line-height: 1;
+}
+
+a{
+	text-shadow: none;
+}

@@ -11,7 +11,7 @@ $(document).ready(function(){
 		refreshcount++;
 		
 		//every 5 minutes get the new lat long
-		if(resfreshcount%60==0){
+		if(refreshcount%60==0){
 			setLatLon();
 		}
 	}, 10000);
@@ -33,6 +33,7 @@ var destinationType;
 function onDeviceReady(){
 		pictureSource=navigator.camera.PictureSourceType;
 		destinationType=navigator.camera.DestinationType;
+		console.log(cordova.plugins.SitewaertsDocumentViewer);
 		try{
 			cordova.getAppVersion.getVersionNumber(function (version) {
 					$('.versionnumber').html(version);
@@ -72,7 +73,7 @@ function checkInternet(){
 	});
 }
 
-function checkIfLoggedIn(requirelogin){
+function checkIfLoggedIn(requirelogin, redirectpage){
 	loggedIn = localStorage.getItem('loggedIn');
 	
 	if(requirelogin && loggedIn!='1'){
@@ -82,8 +83,7 @@ function checkIfLoggedIn(requirelogin){
 		
 		afterLoginCheck();
 		
-		window.location.href='#userHome';
-		
+		//window.location.href = '#'+redirectpage;
 	}
 }
 
@@ -179,7 +179,7 @@ function afterLoginCheck(){
 		
 }
 
-function updateSchedule(){
+function updateSchedule(workorderidtoshow, workordernotes){
 	
 	if(isInternet){
 		//update records, but only store it for now, let another function actually spit it out
@@ -225,23 +225,308 @@ function updateSchedule(){
 			}else{
 				//do nothing if the request didn't work
 			}
-			refreshSchedulePage();
+			refreshSchedulePage(workorderidtoshow, workordernotes);
 		});
 	}else{
-		refreshSchedulePage();
+		refreshSchedulePage(-1, "");
 	}
 }
 
-function refreshSchedulePage(){
+var sortdir = 'asc';
+
+$(document).on('click', '.arrivebutton', function(){
+	var workorderid = $(this).attr('id').split("-")[1];
+	setLatLon();
+	
+	if(isInternet){
+			
+		$.ajax({
+			type: 'POST',
+			url:apiURL,
+			data: {
+				"action": "setarrivaltime",
+				"apikey": apikey,
+				"workorderid": workorderid,
+				"gpslon": curlon,
+				"gpslat": curlat
+			},
+			dataType: "json",
+		}).done(function(response){
+			
+			if(response.success){
+				if(response.data.affected_rows==-1){
+					$('#apiresponse-'+workorderid).removeClass('alert-success');
+					$('#apiresponse-'+workorderid).addClass('alert-danger');
+					$('#apiresponse-'+workorderid).show();
+					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
+				}else{
+					updateSchedule(workorderid, "Succesfully set arrival time");
+				}
+			}else{
+				$('#apiresponse-'+workorderid).removeClass('alert-success');
+				$('#apiresponse-'+workorderid).addClass('alert-danger');
+				$('#apiresponse-'+workorderid).show();
+				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
+			}
+		});
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-success');
+		$('#apiresponse-'+workorderid).addClass('alert-danger');
+		$('#apiresponse-'+workorderid).show();
+		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
+	}
+});
+
+$(document).on('click', '.departbutton', function(){
+	var workorderid = $(this).attr('id').split("-")[1];
+	setLatLon();
+	
+	if(isInternet){
+			
+		$.ajax({
+			type: 'POST',
+			url:apiURL,
+			data: {
+				"action": "setleavetime",
+				"apikey": apikey,
+				"workorderid": workorderid,
+				"gpslon": curlon,
+				"gpslat": curlat,
+				"notes": $('#engineernotes-'+workorderid).val()
+			},
+			dataType: "json",
+		}).done(function(response){
+			
+			if(response.success){
+				if(response.data.affected_rows==-1){
+					$('#apiresponse-'+workorderid).removeClass('alert-success');
+					$('#apiresponse-'+workorderid).addClass('alert-danger');
+					$('#apiresponse-'+workorderid).show();
+					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
+				}else{
+					updateSchedule(workorderid, "Successfully set departure time");
+				}
+			}else{
+				$('#apiresponse-'+workorderid).removeClass('alert-success');
+				$('#apiresponse-'+workorderid).addClass('alert-danger');
+				$('#apiresponse-'+workorderid).show();
+				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
+			}
+		});
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-success');
+		$('#apiresponse-'+workorderid).addClass('alert-danger');
+		$('#apiresponse-'+workorderid).show();
+		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
+	}
+});
+
+$(document).on('click', '.submitnotes', function(){
+	var workorderid = $(this).attr('id').split("-")[1];
+	
+	if(isInternet){
+			
+		$.ajax({
+			type: 'POST',
+			url:apiURL,
+			data: {
+				"action": "updateengineernotes",
+				"apikey": apikey,
+				"workorderid": workorderid,
+				"notes": $('#engineernotes-'+workorderid).val()
+			},
+			dataType: "json",
+		}).done(function(response){
+			
+			if(response.success){
+				if(response.data.affected_rows==-1){
+					$('#apiresponse-'+workorderid).removeClass('alert-success');
+					$('#apiresponse-'+workorderid).addClass('alert-danger');
+					$('#apiresponse-'+workorderid).show();
+					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
+				}else{
+					updateSchedule(workorderid, "Succesfully set note");
+				}
+			}else{
+				$('#apiresponse-'+workorderid).removeClass('alert-success');
+				$('#apiresponse-'+workorderid).addClass('alert-danger');
+				$('#apiresponse-'+workorderid).show();
+				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
+			}
+		});
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-success');
+		$('#apiresponse-'+workorderid).addClass('alert-danger');
+		$('#apiresponse-'+workorderid).show();
+		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
+	}
+});
+
+/* File handling functions */
+$(document).on('click', '.downloadworkorderpdf', function(){
+	var workorderid = $(this).attr('id').split("-")[1];
+	
+	if(isInternet){
+		var pdfurl = siteURL+"/workordertopdf.php?workorderid="+workorderid+"&apikey="+apikey
+		
+		try{
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 5 * 1024 * 1024, function (fs) {
+					console.log('file system open: ' + fs.name);
+
+					// Parameters passed to getFile create a new file or return the file if it already exists.
+					fs.root.getFile("workorder-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
+							download(fileEntry, pdfurl, true, workorderid);
+
+					}, onErrorCreateFile);
+
+			}, onErrorLoadFs);
+			
+		}catch(error){
+			alert(error);
+		}
+	}
+	
+});
+
+function onErrorLoadFs(error){
+	alert("Error loading filesystem: "+error);
+}
+
+function onErrorCreateFile(error){
+	alert("Error creating local file: "+error);
+}
+
+function download(fileEntry, uri, readBinaryData, workorderid) {
+
+	var fileTransfer = new FileTransfer();
+	var fileURL = fileEntry.toURL();
+	fileTransfer.download(
+		uri,
+		fileURL,
+		function (entry) {
+			localStorage.setItem('workorderfile-'+workorderid, entry.toURL());
+			readFile(workorderid);
+		},
+		function (error) {
+			console.log("download error source " + error.source);
+			console.log("download error target " + error.target);
+			console.log("upload error code" + error.code);
+		},
+		null, // or, pass false
+		{
+			//headers: {
+			//    "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="
+			//}
+		}
+	);
+}
+
+function readFile(workorderid){
+	var path = localStorage.getItem('workorderfile-'+workorderid);
+	if(path!=''){
+		var options = {};
+		var mimeType = 'application/pdf';
+		var linkHandlers = [];
+		alert(cordova.plugins.SitewaertsDocumentViewer);
+		try{
+			cordova.plugins.SitewaertsDocumentViewer.viewDocument(
+				path, mimeType, options, onFileShow, onFileClose, onFileMissingApp, onFileError, linkHandlers);
+		}catch(error){
+			alert(error);
+		}
+	}
+}
+
+function onFileShow(){
+		alert("7");
+}
+function onFileClose(){
+	alert("8");
+}
+
+function onFileMissingApp(){
+	alert("You need to dowload a pdf viewer from the play store before you can open pdf files");
+}
+
+function onFileError(error){
+	alert("Unable to open file:" + error);
+}
+
+function linkHandlers(){}
+
+
+
+
+
+
+
+
+
+
+function refreshSchedulePage(workorderidwithnote, note){
+	setLatLon();
+	
 	//put things onto the page from local schedule
 	var workorderstodisplay = [];
 	$.each(workorderlist, function(key, workorderid){
 		workorderstodisplay.push(JSON.parse(localStorage.getItem('workorder-'+workorderid)));
 	});
-	workorderstodisplay.sort(sortWorkordersDateAsc);
-	console.log(workorderstodisplay);
+	if(sortdir=='asc'){
+		workorderstodisplay.sort(sortWorkordersDateAsc);
+	}else{
+		workorderstodisplay.sort(sortWorkordersDateDesc);
+	}
+	if(workorderstodisplay.length>0){
 	
-	setLatLon();
+		var output = "";
+		$.each(workorderstodisplay, function(key, workorder){
+			output += "<div id='page-"+key+"' class='workordercard'>";
+			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
+			output += "<button class='btn-default downloadworkorderpdf' style='float:right' id='getpdf-"+workorder.id+"'>Download PDF</button>";
+			output += "<br> ID: "+ workorder.id;
+			output += "<div class='address'>Address: <br />"+workorder.location_name + '<br>' + workorder.address1 + workorder.city + '<br>' + workorder.postcode +"</div>";
+			output += "With: "+workorder.otheremployees + '<br>';
+			output += "<button class='";
+			//to enable button, both arrive and depart must be blank
+			if(workorder.site_arrive=='' && workorder.site_leave==''){
+				output += "arrivebutton";
+			}else{
+				output += "disabled";
+			}
+			output += "' id='arrivebtn-"+workorder.id+"'>Arrive</button>";
+			output += "<button style='float:right' class='";
+			//to enable depart button, arrive time has to be set and depart unset
+			if(workorder.site_arrive!='' && workorder.site_leave==''){
+				output += "departbutton";
+			}else{
+				output += "disabled";
+			}
+			output += "' id='departbtn-"+workorder.id+"'>Depart</button>";
+			output += "<div class='row'>";
+			output += "<div class='col-sm-6 col-12'><input class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></input></div>";
+			output += "<div class='col-sm-6 col-12 pull-right'><button class='submitnotes' id='submitnotes-"+workorder.id+"'>Submit Engineer Notes</button></div>";
+			output += "</div>";
+			output += "<div class='notesubmitted alert alert-success'";
+			if(workorder.id!=workorderidwithnote){
+				output += " style='display:none'";
+			}
+			output += "id='apiresponse-"+workorder.id+"'>";
+			if(workorder.id==workorderidwithnote){
+				output += note;
+			}
+			output += "</div>";
+			output += "</div>";
+		});
+		
+		$('#workorderschedulelist').html(output);
+		$('#workorderschedulelist').show();
+		$('#noworkorders').hide();
+	}else{
+		
+		$('#workorderschedulelist').hide();
+		$('#noworkorders').show();
+	}
+	
 }
 
 function sortWorkordersDateAsc(a, b){
@@ -265,7 +550,7 @@ var curlat;
 var curlon;
 function geolocationSuccess(position){
 	curlat = position.coords.latitude;
-	curlon = position.coords.longiture;
+	curlon = position.coords.longitude;
 }
 
 function geolocationError(error){
@@ -274,7 +559,7 @@ function geolocationError(error){
 }
 
 $(document).on('click', '.refreshschedule', function(){
-	updateSchedule();
+	updateSchedule(-1, "");
 });
 
 function dateWithoutSeconds(date){
@@ -293,14 +578,14 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 
 	switch (ui.toPage.prop("id")) {
 		case "userHome":
-			checkIfLoggedIn(true);
+			checkIfLoggedIn(true, 'userHome');
 			break;
 		case "schedulePage":
-			checkIfLoggedIn(true);
-			updateSchedule();
+			checkIfLoggedIn(true, 'schedulePage');
+			updateSchedule(-1, "");
 			break;
 		case "login":
-			checkIfLoggedIn(false);
+			checkIfLoggedIn(false, '');
 			break;
 		default:
 			console.log("NO PAGE INIT FUNCTION")

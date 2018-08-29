@@ -62,5 +62,21 @@
         },
         "is_top_level": true,
         "variables": {}
+    },
+    "cordova-plugin-file-transfer": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-file-transfer"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-document-viewer": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-document-viewer@0.9.10"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }
