@@ -562,13 +562,13 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 
 	var fileTransfer = new FileTransfer();
 	var fileURL = fileEntry.toURL();
-	alert("1");
 	fileTransfer.download(
 		uri,
 		fileURL,
 		function (entry) {
 			localStorage.setItem('workorder-'+type+'-'+workorderid+'.pdf', entry.toURL());
-	alert("2");
+			alert('workorder-'+type+'-'+workorderid+'.pdf');
+			alert(localStorage.getItem('workorder-'+type+'-'+workorderid+'.pdf'));
 			readFile(workorderid, type);
 		},
 		function (error) {
@@ -587,7 +587,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 
 function readFile(type, workorderid){
 	var path = localStorage.getItem('workorder-'+type+'-'+workorderid+'.pdf');
-	if(path!=''){
+	if(path!==null && path!=''){
 		try{
 	alert(path);
 			cordova.plugins.fileOpener2.open(
