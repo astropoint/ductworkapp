@@ -33,6 +33,9 @@
         },
         "cordova-plugin-file-opener2": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
+        },
+        "cordova-plugin-app-version": {
+            "PACKAGE_NAME": "com.jmdb.ductwork"
         }
     },
     "dependent_plugins": {

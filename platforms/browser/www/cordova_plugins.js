@@ -318,6 +318,14 @@ module.exports = [
         "clobbers": [
             "cordova.plugins.fileOpener2"
         ]
+    },
+    {
+        "file": "plugins/cordova-plugin-app-version/www/AppVersionPlugin.js",
+        "id": "cordova-plugin-app-version.AppVersionPlugin",
+        "pluginId": "cordova-plugin-app-version",
+        "clobbers": [
+            "cordova.getAppVersion"
+        ]
     }
 ];
 module.exports.metadata = 
@@ -332,7 +340,8 @@ module.exports.metadata =
     "cordova-plugin-network-information": "1.2.1",
     "cordova-plugin-whitelist": "1.2.2",
     "cordova-plugin-file-transfer": "1.5.1",
-    "cordova-plugin-file-opener2": "2.0.19"
+    "cordova-plugin-file-opener2": "2.0.19",
+    "cordova-plugin-app-version": "0.1.9"
 }
 // BOTTOM OF METADATA
 });
