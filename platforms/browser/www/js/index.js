@@ -438,7 +438,10 @@ function readFile(workorderid){
 					} 
 			);
 		}catch(error){
-			alert(error);
+			$('#apiresponse-'+workorderid).removeClass('alert-success');
+			$('#apiresponse-'+workorderid).addClass('alert-danger');
+			$('#apiresponse-'+workorderid).show();
+			$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
 		}
 	}else{
 		$('#apiresponse-'+workorderid).removeClass('alert-success');
