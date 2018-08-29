@@ -49,10 +49,7 @@
         "cordova-plugin-file-transfer": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
         },
-        "cordova-plugin-document-viewer": {
-            "PACKAGE_NAME": "com.jmdb.ductwork"
-        },
-        "cordova-plugin-pdf-viewer": {
+        "cordova-plugin-file-opener2": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
         }
     },
@@ -370,20 +367,11 @@
             ]
         },
         {
-            "file": "plugins/cordova-plugin-document-viewer/www/sitewaertsdocumentviewer.js",
-            "id": "cordova-plugin-document-viewer.SitewaertsDocumentViewer",
-            "pluginId": "cordova-plugin-document-viewer",
+            "file": "plugins/cordova-plugin-file-opener2/www/plugins.FileOpener2.js",
+            "id": "cordova-plugin-file-opener2.FileOpener2",
+            "pluginId": "cordova-plugin-file-opener2",
             "clobbers": [
-                "cordova.plugins.SitewaertsDocumentViewer",
-                "SitewaertsDocumentViewer"
-            ]
-        },
-        {
-            "file": "plugins/cordova-plugin-pdf-viewer/www/pdfviewer.js",
-            "id": "cordova-plugin-pdf-viewer.PDFViewer",
-            "pluginId": "cordova-plugin-pdf-viewer",
-            "clobbers": [
-                "PDFViewer"
+                "cordova.plugins.fileOpener2"
             ]
         }
     ],
@@ -396,8 +384,7 @@
         "cordova-plugin-media": "2.2.0",
         "cordova-plugin-network-information": "1.2.1",
         "cordova-plugin-whitelist": "1.2.2",
-        "cordova-plugin-file-transfer": "1.7.1",
-        "cordova-plugin-document-viewer": "0.9.10",
-        "cordova-plugin-pdf-viewer": "0.0.1"
+        "cordova-plugin-file-transfer": "1.5.1",
+        "cordova-plugin-file-opener2": "2.0.19"
     }
 }

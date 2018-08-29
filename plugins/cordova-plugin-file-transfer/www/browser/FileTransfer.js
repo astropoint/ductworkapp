@@ -161,9 +161,7 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
                 }
 
                 xhr.onload = function() {
-                    // 2xx codes are valid
-                    if (this.status >= 200 &&
-                       this.status < 300) {
+                    if (this.status === 200) {
                         var result = new FileUploadResult(); // jshint ignore:line
                         result.bytesSent = blob.size;
                         result.responseCode = this.status;

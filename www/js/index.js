@@ -33,7 +33,7 @@ var destinationType;
 function onDeviceReady(){
 		pictureSource=navigator.camera.PictureSourceType;
 		destinationType=navigator.camera.DestinationType;
-		console.log(cordova.plugins.SitewaertsDocumentViewer);
+		 $('#output2').html(JSON.stringify(cordova.plugins));
 		try{
 			cordova.getAppVersion.getVersionNumber(function (version) {
 					$('.versionnumber').html(version);
@@ -425,7 +425,18 @@ function readFile(workorderid){
 	var path = localStorage.getItem('workorderfile-'+workorderid);
 	if(path!=''){
 		try{
-			PDFViewer.openPDF(path);
+			alert(path);
+			alert(cordova.plugins.fileOpener2);
+			cordova.plugins.fileOpener2.open(
+					path, 
+					'application/pdf', 
+					{
+							error : function(error){
+								alert(error);
+							}, 
+							success : function(){ } 
+					} 
+			);
 		}catch(error){
 			alert(error);
 		}

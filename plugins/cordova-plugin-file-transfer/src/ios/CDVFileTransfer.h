@@ -84,6 +84,5 @@ extern NSString* const kOptionsKeyCookie;
 @property (strong) NSFileHandle* targetFileHandle;
 @property (nonatomic, strong) CDVFileTransferEntityLengthRequest* entityLengthRequest;
 @property (nonatomic, strong) CDVFile *filePlugin;
-@property (nonatomic, assign) BOOL chunkedMode;
 
 @end

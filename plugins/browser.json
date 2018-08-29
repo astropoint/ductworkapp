@@ -31,10 +31,7 @@
         "cordova-plugin-file-transfer": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
         },
-        "cordova-plugin-document-viewer": {
-            "PACKAGE_NAME": "com.jmdb.ductwork"
-        },
-        "cordova-plugin-pdf-viewer": {
+        "cordova-plugin-file-opener2": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
         }
     },
