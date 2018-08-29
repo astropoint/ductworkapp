@@ -432,25 +432,25 @@ function readFile(workorderid){
 					'application/pdf', 
 					{
 							error : function(error){
-								alert(error);
+								cannotOpenFile(workorderid);
 							}, 
 							success : function(){ } 
 					} 
 			);
 		}catch(error){
-			$('#apiresponse-'+workorderid).removeClass('alert-success');
-			$('#apiresponse-'+workorderid).addClass('alert-danger');
-			$('#apiresponse-'+workorderid).show();
-			$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
+			cannotOpenFile(workorderid);
 		}
 	}else{
-		$('#apiresponse-'+workorderid).removeClass('alert-success');
-		$('#apiresponse-'+workorderid).addClass('alert-danger');
-		$('#apiresponse-'+workorderid).show();
-		$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
+		cannotOpenFile(workorderid);
 	}
 }
 
+function cannotOpenFile(workorderid){
+	$('#apiresponse-'+workorderid).removeClass('alert-success');
+	$('#apiresponse-'+workorderid).addClass('alert-danger');
+	$('#apiresponse-'+workorderid).show();
+	$('#apiresponse-'+workorderid).html('The file cannot be downloaded and has not been previously stored.  You will need to connect to the internet to view the file');
+}
 
 
 function refreshSchedulePage(workorderidwithnote, note){
