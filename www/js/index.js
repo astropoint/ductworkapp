@@ -502,6 +502,7 @@ $(document).on('click', '.submitnotes', function(){
 /* File handling functions */
 $(document).on('click', '.downloadworkorderpdf', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
+	checkInternet();
 	
 	if(isInternet){
 		var pdfurl = siteURL+"/workordertopdf.php?workorderid="+workorderid+"&apikey="+apikey
@@ -529,6 +530,7 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 /* File handling functions */
 $(document).on('click', '.downloadsafetydoc', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
+	checkInternet();
 	
 	if(isInternet){
 		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey;
