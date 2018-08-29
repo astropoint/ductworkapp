@@ -9,6 +9,11 @@ $(document).ready(function(){
 		checkInternet();
 
 		refreshcount++;
+		
+		//every 5 minutes get the new lat long
+		if(resfreshcount%60==0){
+			setLatLon();
+		}
 	}, 10000);
 	
 	setTimeout(checkIfLoggedIn, 20);
@@ -18,6 +23,7 @@ $(document).ready(function(){
 var refreshcount = 0;
 var agendasort = 'desc';
 var loggedIn = false;
+var workorderlist;
 
 var spinner = '<svg class="svg-inline--fa fa-spinner fa-w-16 fa-spin" aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"></path></svg>';
 
@@ -136,15 +142,16 @@ $(document).on('click',"#loginBtn",function(e){
 					localStorage.setItem("userid", response.data.userid);
 					localStorage.setItem("full_name", response.data.full_name);
 					localStorage.setItem("email", response.data.email);
+					localStorage.setItem("workorders", "");
 					
 					afterLoginCheck();
 					
 					window.location.href = "#userHome";
 				}else{
-					$('#feedback').html("The details you entered did not match an account in our system");
+					$('#feedback').html(response.message);
 				}
 			}else{
-				$('#feedback').html("Unable to call API.  Error: "+response.error);
+				$('#feedback').html(response.message);
 			}
 		});
 	}else{
@@ -161,9 +168,114 @@ function afterLoginCheck(){
 	full_name = localStorage.getItem('full_name');
 	userid = localStorage.getItem('userid');
 	
+	var workorderstring = localStorage.getItem('workorders');
+	if(workorderstring==''){
+		workorderlist = [];
+	}else{
+		workorderlist = workorderstring.split(",");
+	}
+	
 	$('.full_name').html(full_name);
 		
 }
+
+function updateSchedule(){
+	
+	if(isInternet){
+		//update records, but only store it for now, let another function actually spit it out
+		data = "action=getmyworkorders&apikey="+apikey;
+		$.ajax({
+			url: apiURL,
+			data: data,
+			dataType: "json",
+			type: 'post'
+		}).done(function(response){
+			if(response.success){
+				var workordersdealtwith = [];
+				
+				for(var i = 0;i<response.data.total;i++){
+					var thisworkorder = response.data.workorders[i];
+					var workorderid = thisworkorder.id;
+					
+					localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
+					workordersdealtwith.push(workorderid);
+				}
+				
+				var newworkorderarray = []; 
+				
+				$.each(workorderlist, function (key, workorderid){
+					workorderid = parseInt(workorderid);
+					if(workordersdealtwith.indexOf(workorderid)<0){
+						//not dealt with, so must be removed, reset field to blank
+						localStorage.setItem('workorder-'+workorderid, "");
+					}else{
+						newworkorderarray.push(workorderid);
+					}
+				});
+				$.each(workordersdealtwith, function (key, workorderid){
+					if(newworkorderarray.indexOf(workorderid)<0){
+						//not dealt with, must be new, add it to the list of workorders
+						newworkorderarray.push(workorderid);
+					}
+				});
+				
+				workorderlist = newworkorderarray;
+				var newworkorderstring = newworkorderarray.join(",");
+				localStorage.setItem('workorders', newworkorderstring);
+			}else{
+				//do nothing if the request didn't work
+			}
+			refreshSchedulePage();
+		});
+	}else{
+		refreshSchedulePage();
+	}
+}
+
+function refreshSchedulePage(){
+	//put things onto the page from local schedule
+	var workorderstodisplay = [];
+	$.each(workorderlist, function(key, workorderid){
+		workorderstodisplay.push(JSON.parse(localStorage.getItem('workorder-'+workorderid)));
+	});
+	workorderstodisplay.sort(sortWorkordersDateAsc);
+	console.log(workorderstodisplay);
+	
+	setLatLon();
+}
+
+function sortWorkordersDateAsc(a, b){
+	adate = Date.parse(a.start_date);
+	bdate = Date.parse(b.start_date);
+	return adate-bdate;
+}
+
+function sortWorkordersDateDesc(a,b){
+	
+	adate = Date.parse(a.start_date);
+	bdate = Date.parse(b.start_date);
+	return bdate-adate;
+}
+
+function setLatLon(){
+	navigator.geolocation.getCurrentPosition(geolocationSuccess, geolocationError);
+}
+
+var curlat;
+var curlon;
+function geolocationSuccess(position){
+	curlat = position.coords.latitude;
+	curlon = position.coords.longiture;
+}
+
+function geolocationError(error){
+	curlat = -1;
+	curlon = -1;
+}
+
+$(document).on('click', '.refreshschedule', function(){
+	updateSchedule();
+});
 
 function dateWithoutSeconds(date){
 	return date.substring(0, date.length - 3);
@@ -185,6 +297,7 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 			break;
 		case "schedulePage":
 			checkIfLoggedIn(true);
+			updateSchedule();
 			break;
 		case "login":
 			checkIfLoggedIn(false);
@@ -211,12 +324,6 @@ function resetAllFields(){
 	$('#password').html('');
 	$('#full_name').html('');
 	
-	localStorage.setItem("loggedIn", 0);
-	localStorage.setItem("username", '');
-	localStorage.setItem("userid", '');
-	localStorage.setItem("apikey", '');
-	localStorage.setItem("userid", '');
-	localStorage.setItem("full_name", '');
-	localStorage.setItem("email", '');
+	localStorage.clear();
 }
 
