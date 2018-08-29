@@ -230,8 +230,12 @@ a{
 	text-shadow: none;
 }
 
-.withtext{
+.withtext,.workordertype{
 	line-height: 1;
 	padding-top: 4px;
 	padding-bottom: 4px;
+}
+
+.workordertype{
+	clear:left;
 }

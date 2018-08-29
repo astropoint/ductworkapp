@@ -36,7 +36,7 @@ function onDeviceReady(){
 		
 		try{
 			cordova.getAppVersion.getVersionNumber(function (version) {
-					$('.versionnumber').html(version);
+				$('.versionnumber').html(version);
 			});
 		}catch(error){
 			console.log("App version cannot be loaded, you are probably using a browser");
@@ -82,8 +82,31 @@ function checkIfLoggedIn(requirelogin, redirectpage){
 	}else if(!requirelogin && loggedIn=='1'){
 		
 		afterLoginCheck();
+		checkApiKey();
 		
 		//window.location.href = '#'+redirectpage;
+	}
+}
+
+function checkApiKey(){
+	
+	var data = "action=checkapikey&apikey="+apikey;
+	
+	var hash = window.location.hash;
+	
+	if(hash!='' && hash!='#login'){
+	
+		$.ajax({
+			url: apiURL,
+			data: data,
+			dataType: "json",
+			type: 'post'
+		}).done(function(response){
+			if(!response.success){
+				window.location.href = '#login';
+			}
+		});
+		
 	}
 }
 
@@ -227,12 +250,120 @@ function updateSchedule(workorderidtoshow, workordernotes){
 			}
 			refreshSchedulePage(workorderidtoshow, workordernotes);
 		});
+		checkApiKey();
 	}else{
 		refreshSchedulePage(-1, "");
 	}
 }
 
 var sortdir = 'asc';
+
+
+function refreshSchedulePage(workorderidwithnote, note){
+	setLatLon();
+	
+	//put things onto the page from local schedule
+	var workorderstodisplay = [];
+	$.each(workorderlist, function(key, workorderid){
+		workorderstodisplay.push(JSON.parse(localStorage.getItem('workorder-'+workorderid)));
+	});
+	if(sortdir=='asc'){
+		workorderstodisplay.sort(sortWorkordersDateAsc);
+	}else{
+		workorderstodisplay.sort(sortWorkordersDateDesc);
+	}
+	if(workorderstodisplay.length>0){
+	
+		var output = "";
+		$.each(workorderstodisplay, function(key, workorder){
+			output += "<div id='page-"+key+"' class='workordercard'>";
+			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
+			output += "<div style='float:right;text-align:right'><button class='btn-default downloadworkorderpdf' id='getpdf-"+workorder.id+"'>Job Sheet</button>";
+			output += "<br><button class='btn-default downloadsafetydoc' id='safetydoc-"+workorder.id+"'>Safety Document</button></div>";
+			output += "<div class='workordertype'>Workorder "+ workorder.id;
+			output += "<br>"+workorder.workorder_type+" - "+workorder.short_description+"</div>";
+			output += "<div class='address'>"+workorder.location_name + '<br>' + workorder.address1 + '<br>' + workorder.city + '<br>' + workorder.postcode +"</div>";
+			output += "<div class='withtext'>With: "+workorder.otheremployees.toString().replace(/,/g, ", ") + '</div>';
+			output += "<button class='";
+			//to enable button, both arrive and depart must be blank
+			if(workorder.site_arrive=='' && workorder.site_leave==''){
+				output += "arrivebutton";
+			}else{
+				output += "disabled";
+			}
+			output += "' id='arrivebtn-"+workorder.id+"'>Arrive</button>";
+			output += "<button style='float:right' class='";
+			//to enable depart button, arrive time has to be set and depart unset
+			if(workorder.site_arrive!='' && workorder.site_leave==''){
+				output += "departbutton";
+			}else{
+				output += "disabled";
+			}
+			output += "' id='departbtn-"+workorder.id+"'>Depart</button>";
+			output += "<div class='row'>";
+			output += "<div class='col-sm-6 col-12'><input class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></input></div>";
+			output += "<div class='col-sm-6 col-12 pull-right'><button class='submitnotes' id='submitnotes-"+workorder.id+"'>Submit Engineer Notes</button></div>";
+			output += "</div>";
+			output += "<div class='notesubmitted alert alert-success'";
+			if(workorder.id!=workorderidwithnote){
+				output += " style='display:none'";
+			}
+			output += "id='apiresponse-"+workorder.id+"'>";
+			if(workorder.id==workorderidwithnote){
+				output += note;
+			}
+			output += "</div>";
+			output += "</div>";
+		});
+		
+		$('#schedulerspinner').hide();
+		$('#workorderschedulelist').html(output);
+		$('#workorderschedulelist').show();
+		$('#noworkorders').hide();
+	}else{
+		
+		$('#schedulerspinner').hide();
+		$('#workorderschedulelist').hide();
+		$('#noworkorders').show();
+	}
+	
+}
+
+function sortWorkordersDateAsc(a, b){
+	adate = Date.parse(a.start_date);
+	bdate = Date.parse(b.start_date);
+	return adate-bdate;
+}
+
+function sortWorkordersDateDesc(a,b){
+	
+	adate = Date.parse(a.start_date);
+	bdate = Date.parse(b.start_date);
+	return bdate-adate;
+}
+
+function setLatLon(){
+	navigator.geolocation.getCurrentPosition(geolocationSuccess, geolocationError);
+}
+
+var curlat;
+var curlon;
+function geolocationSuccess(position){
+	curlat = position.coords.latitude;
+	curlon = position.coords.longitude;
+}
+
+function geolocationError(error){
+	curlat = -1;
+	curlon = -1;
+}
+
+$(document).on('click', '.refreshschedule', function(){
+	updateSchedule(-1, "");
+});
+
+
+
 
 $(document).on('click', '.arrivebutton', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
@@ -362,6 +493,9 @@ $(document).on('click', '.submitnotes', function(){
 	}
 });
 
+
+
+
 /* File handling functions */
 $(document).on('click', '.downloadworkorderpdf', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
@@ -374,8 +508,8 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 					console.log('file system open: ' + fs.name);
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
-					fs.root.getFile("workorder-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
-							download(fileEntry, pdfurl, true, workorderid);
+					fs.root.getFile("workorder-jobsheet-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
+							download(fileEntry, pdfurl, true, workorderid, 'jobsheet');
 
 					}, onErrorCreateFile);
 
@@ -385,9 +519,35 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 			alert(error);
 		}
 	}else{
-		readFile(workorderid);
+		readFile(workorderid, 'jobsheet');
 	}
+});
+
+/* File handling functions */
+$(document).on('click', '.downloadsafetydoc', function(){
+	var workorderid = $(this).attr('id').split("-")[1];
 	
+	if(isInternet){
+		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey
+		
+		try{
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 5 * 1024 * 1024, function (fs) {
+					console.log('file system open: ' + fs.name);
+
+					// Parameters passed to getFile create a new file or return the file if it already exists.
+					fs.root.getFile("workorder-safety-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
+							download(fileEntry, pdfurl, true, workorderid, 'safety');
+
+					}, onErrorCreateFile);
+
+			}, onErrorLoadFs);
+			
+		}catch(error){
+			alert(error);
+		}
+	}else{
+		readFile(workorderid, 'safety');
+	}
 });
 
 function onErrorLoadFs(error){
@@ -398,7 +558,7 @@ function onErrorCreateFile(error){
 	alert("Error creating local file: "+error);
 }
 
-function download(fileEntry, uri, readBinaryData, workorderid) {
+function download(fileEntry, uri, readBinaryData, workorderid, type) {
 
 	var fileTransfer = new FileTransfer();
 	var fileURL = fileEntry.toURL();
@@ -406,8 +566,8 @@ function download(fileEntry, uri, readBinaryData, workorderid) {
 		uri,
 		fileURL,
 		function (entry) {
-			localStorage.setItem('workorderfile-'+workorderid, entry.toURL());
-			readFile(workorderid);
+			localStorage.setItem('workorder-'+type+'-'+workorderid, entry.toURL());
+			readFile(workorderid, type);
 		},
 		function (error) {
 			console.log("download error source " + error.source);
@@ -423,8 +583,8 @@ function download(fileEntry, uri, readBinaryData, workorderid) {
 	);
 }
 
-function readFile(workorderid){
-	var path = localStorage.getItem('workorderfile-'+workorderid);
+function readFile(type, workorderid){
+	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
 	if(path!=''){
 		try{
 			cordova.plugins.fileOpener2.open(
@@ -453,104 +613,9 @@ function cannotOpenFile(workorderid){
 }
 
 
-function refreshSchedulePage(workorderidwithnote, note){
-	setLatLon();
-	
-	//put things onto the page from local schedule
-	var workorderstodisplay = [];
-	$.each(workorderlist, function(key, workorderid){
-		workorderstodisplay.push(JSON.parse(localStorage.getItem('workorder-'+workorderid)));
-	});
-	if(sortdir=='asc'){
-		workorderstodisplay.sort(sortWorkordersDateAsc);
-	}else{
-		workorderstodisplay.sort(sortWorkordersDateDesc);
-	}
-	if(workorderstodisplay.length>0){
-	
-		var output = "";
-		$.each(workorderstodisplay, function(key, workorder){
-			output += "<div id='page-"+key+"' class='workordercard'>";
-			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
-			output += "<button class='btn-default downloadworkorderpdf' style='float:right' id='getpdf-"+workorder.id+"'>Download PDF</button>";
-			output += "<br> ID: "+ workorder.id;
-			output += "<div class='address'>Address: <br />"+workorder.location_name + '<br>' + workorder.address1 + '<br>' + workorder.city + '<br>' + workorder.postcode +"</div>";
-			output += "<div class='withtext'>With: "+workorder.otheremployees.toString().replace(/,/g, ", ") + '</div>';
-			output += "<button class='";
-			//to enable button, both arrive and depart must be blank
-			if(workorder.site_arrive=='' && workorder.site_leave==''){
-				output += "arrivebutton";
-			}else{
-				output += "disabled";
-			}
-			output += "' id='arrivebtn-"+workorder.id+"'>Arrive</button>";
-			output += "<button style='float:right' class='";
-			//to enable depart button, arrive time has to be set and depart unset
-			if(workorder.site_arrive!='' && workorder.site_leave==''){
-				output += "departbutton";
-			}else{
-				output += "disabled";
-			}
-			output += "' id='departbtn-"+workorder.id+"'>Depart</button>";
-			output += "<div class='row'>";
-			output += "<div class='col-sm-6 col-12'><input class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></input></div>";
-			output += "<div class='col-sm-6 col-12 pull-right'><button class='submitnotes' id='submitnotes-"+workorder.id+"'>Submit Engineer Notes</button></div>";
-			output += "</div>";
-			output += "<div class='notesubmitted alert alert-success'";
-			if(workorder.id!=workorderidwithnote){
-				output += " style='display:none'";
-			}
-			output += "id='apiresponse-"+workorder.id+"'>";
-			if(workorder.id==workorderidwithnote){
-				output += note;
-			}
-			output += "</div>";
-			output += "</div>";
-		});
-		
-		$('#workorderschedulelist').html(output);
-		$('#workorderschedulelist').show();
-		$('#noworkorders').hide();
-	}else{
-		
-		$('#workorderschedulelist').hide();
-		$('#noworkorders').show();
-	}
-	
-}
 
-function sortWorkordersDateAsc(a, b){
-	adate = Date.parse(a.start_date);
-	bdate = Date.parse(b.start_date);
-	return adate-bdate;
-}
 
-function sortWorkordersDateDesc(a,b){
-	
-	adate = Date.parse(a.start_date);
-	bdate = Date.parse(b.start_date);
-	return bdate-adate;
-}
 
-function setLatLon(){
-	navigator.geolocation.getCurrentPosition(geolocationSuccess, geolocationError);
-}
-
-var curlat;
-var curlon;
-function geolocationSuccess(position){
-	curlat = position.coords.latitude;
-	curlon = position.coords.longitude;
-}
-
-function geolocationError(error){
-	curlat = -1;
-	curlon = -1;
-}
-
-$(document).on('click', '.refreshschedule', function(){
-	updateSchedule(-1, "");
-});
 
 function dateWithoutSeconds(date){
 	return date.substring(0, date.length - 3);
