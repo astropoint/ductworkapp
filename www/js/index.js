@@ -245,7 +245,7 @@ function updateSchedule(workorderidtoshow, workordernotes){
 						//not dealt with, so must be removed, reset field to blank
 						localStorage.setItem('workorder-'+workorderid, "");
 						
-						removeFiles(workorderid);
+						removeFile(workorderid, 'jobsheet');
 						
 					}else{
 						newworkorderarray.push(workorderid);
@@ -640,29 +640,29 @@ function cannotOpenFile(workorderid, message){
 	$('#apiresponse-'+workorderid).html(message);
 }
 
-function removeFiles(workorderid){
-	var filetypes = ['jobsheet', 'safety'];
+function removeFile(workorderid, type){
 	
-	for(var i = 0;i<filetypes.length;i++){
-		var type = filetypes[i];
-		var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
-		if(path!==null && path!=''){
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
-				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
-					alert("workorder-"+type+"-"+workorderid+".pdf");
-					try{
-						fileEntry.remove(function() {
-							alert('File removed.');
-						}, errorHandler);
-					}catch(error){
-						alert("Error removing file: "+error);
-					}
-
-				}, errorHandler);
-			}, errorHandler);
-		}
-		localStorage.setItem('workorder-'+type+'-'+workorderid, '');
+	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
+	if(path!==null && path!=''){
+		window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
+			fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
+				alert("workorder-"+type+"-"+workorderid+".pdf");
+				try{
+					fileEntry.remove(function() {
+						alert('File removed.');
+						if(type=='jobsheet'){
+							//file removal run asynchronously so this needs to be chained together
+							removeFile(workorderid, 'safety');
+						}
+					}, errorHandler);
+				}catch(error){
+					alert("Error removing file: "+error);
+				}
+			}, errorHandler1);
+		}, errorHandler);
 	}
+	localStorage.setItem('workorder-'+type+'-'+workorderid, '');
+	
 }
 
 
