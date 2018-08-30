@@ -36,6 +36,9 @@
         },
         "cordova-plugin-app-version": {
             "PACKAGE_NAME": "com.jmdb.ductwork"
+        },
+        "cordova-plugin-x-toast": {
+            "PACKAGE_NAME": "com.jmdb.ductwork"
         }
     },
     "dependent_plugins": {

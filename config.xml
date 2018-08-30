@@ -22,6 +22,7 @@
     <plugin name="cordova-plugin-file-transfer" source="npm" spec="~1.5.0" />
     <plugin name="cordova-plugin-file-opener2" source="npm" />
     <plugin name='cordova-plugin-app-version' source='npm' />
+    <plugin name="cordova-plugin-x-toast" source="npm" />
     <platform name="android">
         <icon density="ldpi" src="www/res/icon/android/drawable-ldpi-icon.png" />
         <icon density="mdpi" src="www/res/icon/android/drawable-mdpi-icon.png" />
