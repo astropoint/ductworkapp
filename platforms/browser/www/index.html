@@ -143,7 +143,7 @@ function listResults(entries) {
 }
 
 function onInitFs(fs) {
-
+alert(fs);
   var dirReader = fs.root.createReader();
   var entries = [];
 
@@ -162,8 +162,15 @@ function onInitFs(fs) {
   readEntries(); // Start reading dirs.
 
 }
-
+$(document).ready(function(){
+try{
 window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
+		}catch(error){
+			alert(error);
+		}
+		});
+		
+		function errorHandler(){}
 			</script>
 		</div>
 	</div>
