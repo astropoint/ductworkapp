@@ -646,24 +646,32 @@ function removeFile(workorderid, type){
 	if(path!==null && path!=''){
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
 			fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
-				alert("workorder-"+type+"-"+workorderid+".pdf");
 				try{
 					fileEntry.remove(function() {
-						alert('File removed.');
 						if(type=='jobsheet'){
 							//file removal run asynchronously so this needs to be chained together
 							removeFile(workorderid, 'safety');
 						}
-					}, errorHandler);
+					}, removeFileErrorHandler3);
 				}catch(error){
-					alert("Error removing file: "+error);
+					alert("Error code RM4: "+error);
 				}
 			}, errorHandler1);
 		}, errorHandler);
+	}else{
+		//continue chain
+		if(type=='jobsheet'){
+			//file removal run asynchronously so this needs to be chained together
+			removeFile(workorderid, 'safety');
+		}
 	}
 	localStorage.setItem('workorder-'+type+'-'+workorderid, '');
-	
+	updateFileList();
 }
+
+function removeFileErrorHandler1(error){alert("Error code RM1:"+JSON.stringify(error))}
+function removeFileErrorHandler2(error){alert("Error code RM2:"+JSON.stringify(error))}
+function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(error))}
 
 
 
