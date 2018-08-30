@@ -537,7 +537,7 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 			}, onErrorLoadFs);
 			
 		}catch(error){
-			alert(error);
+			alert("Error code LF3: "+JSON.stringify(error));
 		}
 	}else{
 		readFile(workorderid, 'jobsheet');
@@ -565,7 +565,7 @@ $(document).on('click', '.downloadsafetydoc', function(){
 			}, onErrorLoadFs);
 			
 		}catch(error){
-			alert(error);
+			alert("Error code LF2: "+JSON.stringify(error));
 		}
 	}else{
 		readFile(workorderid, 'safety');
@@ -573,11 +573,11 @@ $(document).on('click', '.downloadsafetydoc', function(){
 });
 
 function onErrorLoadFs(error){
-	alert("Error loading filesystem: "+error);
+	alert("Error code LF1: "+JSON.stringify(error));
 }
 
 function onErrorCreateFile(error){
-	alert("Error creating local file: "+error);
+	alert("Error code CF1: "+JSON.stringify(error));
 }
 
 function download(fileEntry, uri, readBinaryData, workorderid, type) {
@@ -593,9 +593,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 				readFile(workorderid, type);
 			},
 			function (error) {
-				console.log("download error source " + error.source);
-				console.log("download error target " + error.target);
-				console.log("upload error code" + error.code);
+				alert("Error code D1: "+JSON.stringify(error));
 			},
 			null, // or, pass false
 			{
@@ -669,6 +667,7 @@ function removeFile(workorderid, type){
 	updateFileList();
 }
 
+function errorHandler(error){alert("Error code E1:"+JSON.stringify(error))}
 function removeFileErrorHandler1(error){alert("Error code RM1:"+JSON.stringify(error))}
 function removeFileErrorHandler2(error){alert("Error code RM2:"+JSON.stringify(error))}
 function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(error))}
