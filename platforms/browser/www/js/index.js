@@ -43,14 +43,17 @@ function onDeviceReady(){
 		}
 		
 		
-$(document).ready(function(){
-try{
+		
+
+}
+
+function updateFileList(){
+	try{
 window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
 		}catch(error){
 			alert(error);
 		}
-		});
-}
+	}
 
 var siteURL = "https://ductworkadmindev.duckdns.org";
 var apiURL = siteURL+"/api/api.php";
@@ -266,6 +269,7 @@ function updateSchedule(workorderidtoshow, workordernotes){
 	}else{
 		refreshSchedulePage(-1, "");
 	}
+	updateFileList();
 }
 
 var sortdir = 'asc';
@@ -342,7 +346,6 @@ function refreshSchedulePage(workorderidwithnote, note){
 		$('#noworkorders').show();
 	}
 	
-	$('#loc').html(JSON.stringify(localStorage));
 }
 
 function sortWorkordersDateAsc(a, b){
@@ -643,7 +646,7 @@ function removeFiles(workorderid){
 		var type = filetypes[i];
 		var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
 		if(path!==null && path!=''){
-			window.requestFileSystem(window.TEMPORARY, 1024*1024, function(fs) {
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 1024*1024, function(fs) {
 				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
 
 					fileEntry.remove(function() {
