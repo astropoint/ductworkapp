@@ -52,7 +52,6 @@ var apikey = "";
 function checkInternet(){
 	var data = "action=checkconnection"; 
 	var success = false;
-	
 	$.ajax({
 			url: apiURL,
 			data: data,
@@ -90,23 +89,25 @@ function checkIfLoggedIn(requirelogin, redirectpage){
 
 function checkApiKey(){
 	
-	var data = "action=checkapikey&apikey="+apikey;
-	
-	var hash = window.location.hash;
-	
-	if(hash!='' && hash!='#login'){
-	
-		$.ajax({
-			url: apiURL,
-			data: data,
-			dataType: "json",
-			type: 'post'
-		}).done(function(response){
-			if(!response.success){
-				window.location.href = '#login';
-			}
-		});
+	if(isInternet){
+		var data = "action=checkapikey&apikey="+apikey;
 		
+		var hash = window.location.hash;
+	
+		if(hash!='' && hash!='#login'){
+		
+			$.ajax({
+				url: apiURL,
+				data: data,
+				dataType: "json",
+				type: 'post'
+			}).done(function(response){
+				if(!response.success){
+					window.location.href = '#login';
+				}
+			});
+			
+		}
 	}
 }
 
