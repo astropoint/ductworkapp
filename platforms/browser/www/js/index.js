@@ -74,18 +74,18 @@ function checkInternet(){
 
 function checkIfLoggedIn(requirelogin, redirectpage){
 	loggedIn = localStorage.getItem('loggedIn');
-	alert(loggedIn);
+	var hash = window.location.hash;
+	
 	if(requirelogin && loggedIn!='1'){
 		window.location.href='#login';
-		
+	}else if(requirelogin){
+		afterLoginCheck(); //requires login, is logged in, just run required function
 	}else if(!requirelogin && loggedIn=='1'){
 		
 		afterLoginCheck();
 		checkApiKey();
 		
-		if(redirectpage!=''){
-			window.location.href = '#'+redirectpage;
-		}else{
+		if(hash=='' || hash=='#login'){
 			window.location.href = '#userHome';
 		}
 	}
@@ -107,6 +107,8 @@ function checkApiKey(){
 				type: 'post'
 			}).done(function(response){
 				if(!response.success){
+					//key is invalid, so log out
+					resetAllFields();
 					window.location.href = '#login';
 				}
 			});
@@ -724,7 +726,16 @@ function resetAllFields(){
 	$('#password').html('');
 	$('#full_name').html('');
 	
-	localStorage.clear();
+	var workorders = localStorage.getItem('workorders');
+	var workorderlist = workorders.split(",");
+	for(var i = 0;i<workorderlist.length;i++){
+		var workorderid = workorderlist[i];
+		removeFile(workorderid);
+	}
+	
+	setTimeout(function(){
+		localStorage.clear();
+	}, 200); //wait 200ms before clearing the cache
 }
 
 
