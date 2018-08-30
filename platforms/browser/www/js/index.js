@@ -49,9 +49,10 @@ function onDeviceReady(){
 
 function updateFileList(){
 	try{
+		$('#filelist').html('');
 window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
 		}catch(error){
-			alert(error);
+			alert("Err filelistudate:"+error.toString());
 		}
 	}
 
@@ -648,10 +649,14 @@ function removeFiles(workorderid){
 		if(path!==null && path!=''){
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
 				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
-
-					fileEntry.remove(function() {
-						alert('File removed.');
-					}, errorHandler);
+					alert("workorder-"+type+"-"+workorderid+".pdf");
+					try{
+						fileEntry.remove(function() {
+							alert('File removed.');
+						}, errorHandler);
+					}catch(error){
+						alert("Error removing file: "+error);
+					}
 
 				}, errorHandler);
 			}, errorHandler);
