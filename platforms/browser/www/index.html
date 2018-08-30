@@ -162,13 +162,6 @@ alert(fs);
   readEntries(); // Start reading dirs.
 
 }
-$(document).ready(function(){
-try{
-window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
-		}catch(error){
-			alert(error);
-		}
-		});
 		
 		function errorHandler(){}
 			</script>

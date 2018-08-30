@@ -41,6 +41,15 @@ function onDeviceReady(){
 		}catch(error){
 			console.log("App version cannot be loaded, you are probably using a browser");
 		}
+		
+		
+$(document).ready(function(){
+try{
+window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
+		}catch(error){
+			alert(error);
+		}
+		});
 }
 
 var siteURL = "https://ductworkadmindev.duckdns.org";
