@@ -646,6 +646,7 @@ function removeFile(workorderid, type){
 			fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
 				try{
 					fileEntry.remove(function() {
+						alert("Removed file "+"workorder-"+type+"-"+workorderid+".pdf");
 						if(type=='jobsheet'){
 							//file removal run asynchronously so this needs to be chained together
 							removeFile(workorderid, 'safety');
