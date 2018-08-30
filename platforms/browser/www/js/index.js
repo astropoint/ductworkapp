@@ -640,25 +640,26 @@ function cannotOpenFile(workorderid, message){
 
 function removeFile(workorderid, type){
 	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
-	alert(workorderid);
-	alert(type);
-	alert(path);
 	if(path!==null && path!=''){
-		window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
-			fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
-				try{
-					fileEntry.remove(function() {
-						alert("Removed file "+"workorder-"+type+"-"+workorderid+".pdf");
-						if(type=='jobsheet'){
-							//file removal run asynchronously so this needs to be chained together
-							removeFile(workorderid, 'safety');
-						}
-					}, removeFileErrorHandler3);
-				}catch(error){
-					alert("Error code RM4: "+error);
-				}
-			}, errorHandler1);
-		}, errorHandler);
+		try{
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
+				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
+					try{
+						fileEntry.remove(function() {
+							alert("Removed file "+"workorder-"+type+"-"+workorderid+".pdf");
+							if(type=='jobsheet'){
+								//file removal run asynchronously so this needs to be chained together
+								removeFile(workorderid, 'safety');
+							}
+						}, removeFileErrorHandler3);
+					}catch(error){
+						alert("Error code RM4: "+error);
+					}
+				}, removeFileErrorHandler1);
+			}, removeFileErrorHandler2);
+		}catch(error){
+			alert("Error code RM5:"+JSON.stringify(error));
+		}
 	}else{
 		//continue chain
 		if(type=='jobsheet'){
@@ -671,9 +672,9 @@ function removeFile(workorderid, type){
 }
 
 function errorHandler(error){alert("Error code E1:"+JSON.stringify(error))}
-function removeFileErrorHandler1(error){alert("Error code RM1:"+JSON.stringify(error))}
-function removeFileErrorHandler2(error){alert("Error code RM2:"+JSON.stringify(error))}
-function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(error))}
+function removeFileErrorHandler1(error){alert("Error code RM1:"+JSON.stringify(error));}
+function removeFileErrorHandler2(error){alert("Error code RM2:"+JSON.stringify(error));}
+function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(error));}
 
 
 
