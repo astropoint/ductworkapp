@@ -231,6 +231,9 @@ function updateSchedule(workorderidtoshow, workordernotes){
 					if(workordersdealtwith.indexOf(workorderid)<0){
 						//not dealt with, so must be removed, reset field to blank
 						localStorage.setItem('workorder-'+workorderid, "");
+						
+						removeFiles(workorderid);
+						
 					}else{
 						newworkorderarray.push(workorderid);
 					}
@@ -330,6 +333,7 @@ function refreshSchedulePage(workorderidwithnote, note){
 		$('#noworkorders').show();
 	}
 	
+	$('#loc').html(JSON.stringify(localStorage));
 }
 
 function sortWorkordersDateAsc(a, b){
@@ -572,7 +576,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 			uri,
 			fileURL,
 			function (entry) {
-				localStorage.setItem('workorder-'+type+'-'+workorderid+'.pdf', entry.toURL());
+				localStorage.setItem('workorder-'+type+'-'+workorderid, entry.toURL());
 				readFile(workorderid, type);
 			},
 			function (error) {
@@ -593,7 +597,7 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 }
 
 function readFile(workorderid, type){
-	var path = localStorage.getItem('workorder-'+type+'-'+workorderid+'.pdf');
+	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
 	
 	if(path!==null && path!=''){
 		try{
@@ -603,14 +607,12 @@ function readFile(workorderid, type){
 					'application/pdf', 
 					{
 							error : function(error){
-								alert(path);
 								cannotOpenFile(workorderid, 'Error opening file on filesystem 1: '+ error);
 							}, 
 							success : function(){ } 
 					} 
 			);
 		}catch(error){
-			alert(path);
 			cannotOpenFile(workorderid, 'Error opening file on filesystem 2:'+error);
 		}
 	}else{
@@ -625,7 +627,26 @@ function cannotOpenFile(workorderid, message){
 	$('#apiresponse-'+workorderid).html(message);
 }
 
+function removeFiles(workorderid){
+	var filetypes = ['jobsheet', 'safety'];
+	
+	for(var i = 0;i<filetypes.length;i++){
+		var type = filetypes[i];
+		var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
+		if(path!==null && path!=''){
+			window.requestFileSystem(window.TEMPORARY, 1024*1024, function(fs) {
+				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
 
+					fileEntry.remove(function() {
+						alert('File removed.');
+					}, errorHandler);
+
+				}, errorHandler);
+			}, errorHandler);
+		}
+		localStorage.setItem('workorder-'+type+'-'+workorderid, '');
+	}
+}
 
 
 
