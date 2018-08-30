@@ -512,7 +512,7 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 		var pdfurl = siteURL+"/workordertopdf.php?workorderid="+workorderid+"&apikey="+apikey
 		
 		try{
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 5 * 1024 * 1024, function (fs) {
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20 * 1024 * 1024, function (fs) {
 					console.log('file system open: ' + fs.name);
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
@@ -540,7 +540,7 @@ $(document).on('click', '.downloadsafetydoc', function(){
 		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey;
 		
 		try{
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 5 * 1024 * 1024, function (fs) {
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20 * 1024 * 1024, function (fs) {
 					console.log('file system open: ' + fs.name);
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.

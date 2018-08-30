@@ -118,7 +118,7 @@
 				<div id='noworkorders'>You have no workorders scheduled within the next 2 weeks</div>
 				<div id='workorderschedulelist'></div>
 			</div>
-<ul id="filelist"></ul>
+<ul id="filelist" style='background-color: #d99;min-height:10px;'></ul>
 			<div id='loc' style='overflow-x:scroll;overflow-y:scroll'></div>
 			<script>
 			
@@ -163,7 +163,7 @@ function onInitFs(fs) {
 
 }
 
-window.requestFileSystem(window.TEMPORARY, 1024*1024, onInitFs, errorHandler);
+window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
 			</script>
 		</div>
 	</div>
