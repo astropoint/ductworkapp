@@ -639,8 +639,10 @@ function cannotOpenFile(workorderid, message){
 }
 
 function removeFile(workorderid, type){
-	
 	var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
+	alert(workorderid);
+	alert(type);
+	alert(path);
 	if(path!==null && path!=''){
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
 			fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
