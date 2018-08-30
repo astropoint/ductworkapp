@@ -646,7 +646,7 @@ function removeFiles(workorderid){
 		var type = filetypes[i];
 		var path = localStorage.getItem('workorder-'+type+'-'+workorderid);
 		if(path!==null && path!=''){
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 1024*1024, function(fs) {
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, function(fs) {
 				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
 
 					fileEntry.remove(function() {
