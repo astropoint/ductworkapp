@@ -45,7 +45,7 @@ function onDeviceReady(){
 
 var siteURL = "https://ductworkadmindev.duckdns.org";
 var apiURL = siteURL+"/api/api.php";
-var isInternet = true;
+var isInternet = false;
 var maxUploadSize = 8;
 var apikey = "";
 
