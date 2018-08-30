@@ -16,7 +16,7 @@ $(document).ready(function(){
 		}
 	}, 10000);
 	
-	setTimeout(checkIfLoggedIn, 20);
+	//setTimeout(checkIfLoggedIn, 20);
 	
 });
 
@@ -83,7 +83,11 @@ function checkIfLoggedIn(requirelogin, redirectpage){
 		afterLoginCheck();
 		checkApiKey();
 		
-		//window.location.href = '#'+redirectpage;
+		if(redirectpage!=''){
+			window.location.href = '#'+redirectpage;
+		}else{
+			window.location.href = '#userHome';
+		}
 	}
 }
 
