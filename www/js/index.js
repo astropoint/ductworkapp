@@ -41,20 +41,7 @@ function onDeviceReady(){
 		}catch(error){
 			console.log("App version cannot be loaded, you are probably using a browser");
 		}
-		
-		
-		
-
 }
-
-function updateFileList(){
-	try{
-		$('#filelist').html('');
-window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
-		}catch(error){
-			alert("Err filelistudate:"+error.toString());
-		}
-	}
 
 var siteURL = "https://ductworkadmindev.duckdns.org";
 var apiURL = siteURL+"/api/api.php";
@@ -270,7 +257,6 @@ function updateSchedule(workorderidtoshow, workordernotes){
 	}else{
 		refreshSchedulePage(-1, "");
 	}
-	updateFileList();
 }
 
 var sortdir = 'asc';
@@ -646,7 +632,6 @@ function removeFile(workorderid, type){
 				fs.root.getFile("workorder-"+type+"-"+workorderid+".pdf", {create: false}, function(fileEntry) {
 					try{
 						fileEntry.remove(function() {
-							alert("Removed file "+"workorder-"+type+"-"+workorderid+".pdf");
 							if(type=='jobsheet'){
 								//file removal run asynchronously so this needs to be chained together
 								removeFile(workorderid, 'safety');
@@ -668,7 +653,6 @@ function removeFile(workorderid, type){
 		}
 	}
 	localStorage.setItem('workorder-'+type+'-'+workorderid, '');
-	updateFileList();
 }
 
 function errorHandler(error){alert("Error code E1:"+JSON.stringify(error))}
@@ -727,5 +711,59 @@ function resetAllFields(){
 	$('#full_name').html('');
 	
 	localStorage.clear();
+}
+
+
+
+
+//List files code and put into a div with id filelist
+function updateFileList(){
+	try{
+		$('#filelist').html('');
+		window.requestFileSystem(LocalFileSystem.PERSISTENT, 20*1024*1024, onInitFs, errorHandler);
+	}catch(error){
+		alert("Error code FL1:"+error.toString());
+	}
+}
+
+function toArray(list) {
+	return Array.prototype.slice.call(list || [], 0);
+}
+
+function listResults(entries) {
+	// Document fragments can improve performance since they're only appended
+	// to the DOM once. Only one browser reflow occurs.
+	var fragment = document.createDocumentFragment();
+
+	entries.forEach(function(entry, i) {
+		var img = entry.isDirectory ? '<img src="folder-icon.gif">' :
+																	'<img src="file-icon.gif">';
+		var li = document.createElement('li');
+		li.innerHTML = [img, '<span>', entry.name, '</span>'].join('');
+		fragment.appendChild(li);
+	});
+
+	document.querySelector('#filelist').appendChild(fragment);
+}
+
+function onInitFs(fs) {
+
+	var dirReader = fs.root.createReader();
+	var entries = [];
+
+	// Call the reader.readEntries() until no more results are returned.
+	var readEntries = function() {
+		 dirReader.readEntries (function(results) {
+			if (!results.length) {
+				listResults(entries.sort());
+			} else {
+				entries = entries.concat(toArray(results));
+				readEntries();
+			}
+		}, errorHandler);
+	};
+
+	readEntries(); // Start reading dirs.
+
 }
 
