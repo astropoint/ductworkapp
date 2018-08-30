@@ -74,7 +74,7 @@ function checkInternet(){
 
 function checkIfLoggedIn(requirelogin, redirectpage){
 	loggedIn = localStorage.getItem('loggedIn');
-	
+	alert(loggedIn);
 	if(requirelogin && loggedIn!='1'){
 		window.location.href='#login';
 		
@@ -113,6 +113,14 @@ function checkApiKey(){
 			
 		}
 	}
+}
+
+function showToast(message){
+	window.plugins.toast.showLongBottom(message, function(a){
+		//Toast Success
+	}, function(b){
+		alert('toast error: ' + b)
+	});
 }
 
 $(document).on('click', '.goback', function(e){
@@ -260,6 +268,7 @@ function updateSchedule(workorderidtoshow, workordernotes){
 		});
 		checkApiKey();
 	}else{
+		showToast("You are not connected to the internet so this page cannot be updated.  Showing a cached version if available");
 		refreshSchedulePage(-1, "");
 	}
 }
