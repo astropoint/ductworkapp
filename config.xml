@@ -2,7 +2,7 @@
 <widget id="com.jmdb.ductwork" version="0.0.6" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
     <name>Ductwork</name>
     <description>
-			Ductwork Compliance Scheduler
+			Ductwork Compliance Engineer App show the upcoming schedule and allowing engineers to upload expenses receipts
     </description>
     <author email="support@jmdbsoftware.com" href="https://www.jmdbsoftware.com">
         JMDB Software Ltd

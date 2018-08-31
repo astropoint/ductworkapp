@@ -24,7 +24,6 @@ var refreshcount = 0;
 var agendasort = 'desc';
 var loggedIn = false;
 var workorderlist;
-var maxUploadSize = 8;
 
 var spinner = '<svg class="svg-inline--fa fa-spinner fa-w-16 fa-spin" aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"></path></svg>';
 
@@ -750,6 +749,7 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 		var expensetype = $('#expensetype').val();
 		var expensepaymentmethod = $('#expensepaymentmethod').val();
 		var expenseamount = $('#expenseamount').val();
+		var base64encode = $('#receiptphoto').attr('src');
 		
 		var goodform = true;
 		var errors = [];
@@ -778,65 +778,41 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 			$('#expenseamountdiv').addClass('failedform');
 		}
 		
+		if(base64encode==''){
+			goodform = false;
+			errors.push("You need to take a photo of the receipt or other documentation");
+			$('#receiptphotodiv').addClass('failedform');
+		}
+		
 		if(goodform){
-			var photouri = $('#receiptphoto').attr('src');
-			
-			var options = new FileUploadOptions();
-			options.fileKey = "receiptphoto";
-			options.fileName = photouri.substr(imageURI.lastIndexOf('/') + 1);
-			options.mimeType = "image/jpeg";
-			var params = new Object();
-			params.deferprofilesave = "1";
-			params.action = "uploadreceipt";
-			params.apikey = apikey;
-			params.receipt_date = expensedate;
-			params.payment_type = expensetype;
-			params.payment_method = expensepaymentmethod;
-			params.amount = apikey;
-			options.params = expenseamount;
-			options.chunkedMode = false;
-
-			var ft = new FileTransfer();
+			$.ajax({
+				type: 'POST',
+				url:apiURL,
+				data: {
+					"action": "uploadreceipt",
+					"apikey": apikey,
+					"receipt_date": expensedate,
+					"payment_type": expensetype,
+					"payment_method": expensepaymentmethod,
+					"amount": expenseamount,
+					"base64encode": base64encode
+				},
+				dataType: "json",
+			}).done(function(response){
 				
-			var uploadURL = apiURL;
-			ft.upload(imageURI, uploadURL, function(result){
+				$('#expensedate').val('');
+				$('#expensetype').val('');
+				$('#expensepaymentmethod').val('');
+				$('#amount').val('');
+				$('#expensepaymentmethod').trigger('change');
+				$('#expenseamount').trigger('change');
+				$('#receiptphoto').attr('src', '');
+				$('#receiptphotodiv').hide();
 				
-				try{
-					var output = JSON.parse(result.response);
-					if(output.success){
-						$('#expensedate').val('');
-						$('#expensetype').val('');
-						$('#expensepaymentmethod').val('');
-						$('#expenseamount').val('');
-						//$('#receiptphoto').attr('src', '');
-						//$('#receiptphotodiv').hide();
-						
-						$('#expenseformresult').addClass('alert-success');
-						$('#expenseformresult').html("Succesfully uploaded expense claim");
-						$('#expenseformresult').slideDown();
-					}else{
-						$('#profileimagestatus').show();
-						$('#profilestatusresponse').html("Unable to save receipt: "+output.message);
-					}
-					//$('#updateprofileimagespinner').hide();
-					//$('#profilepicture').show();
-				}catch(error){
-					$('#profileimagestatus').show();
-					$('#updateprofileimagespinner').hide();
-					if(parseInt(result.bytesSent)>(maxUploadSize*1024*1024)){
-						$('#profileimagestatus').html("The file you are trying to upload is too large, please select an image less than "+maxUploadSize+"MB large");
-					}else{
-						$('#expenseformresult').addClass('alert-danger');
-						$('#expenseformresult').show();
-						$('#expenseformresult').html("Unable to upload photo: "+JSON.stringify(error));
-					}
-				}
-			}, function(error){
-						$('#expenseformresult').addClass('alert-danger');
-						$('#expenseformresult').show();
-						$('#expenseformresult').html("Unable to upload photo: "+JSON.stringify(error));
-			}, options);
-
+				$('#expenseformresult').addClass('alert-success');
+				$('#expenseformresult').html("Succesfully uploaded expense claim");
+				$('#expenseformresult').slideDown();
+			});
 		}else{
 			$('#expenseformresult').addClass('alert-danger');
 			$('#expenseformresult').html(errors.join("<br>"));
@@ -851,9 +827,9 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 $(document).on('click', '#getphotobutton', function(e){
 	e.preventDefault();
 	
-	navigator.camera.getPicture(function(imageURI){
+	navigator.camera.getPicture(function(imageData){
 			//on success
-			$('#receiptphoto').attr('src', imageURI);
+			$('#receiptphoto').attr('src', "data:image/jpeg;base64," + imageData);
 			$('#receiptphotodiv').show();
 		}, function(message){
 			//on fail
@@ -861,7 +837,7 @@ $(document).on('click', '#getphotobutton', function(e){
 		}, 
 		{ 
 			quality: 50, 
-			destinationType: Camera.DestinationType.FILE_URI 
+			destinationType: Camera.DestinationType.DATA_URL
 		}); 
 });
 
