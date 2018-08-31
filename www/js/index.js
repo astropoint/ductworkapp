@@ -3,6 +3,7 @@ $(document).ready(function(){
 	document.addEventListener('deviceready', onDeviceReady,false);
 	//onDeviceReady();
 	checkInternet();
+	updateSchedule();
 	
 	//check the status of the internet every 10 seconds
 	setInterval(function(){
@@ -11,8 +12,12 @@ $(document).ready(function(){
 		refreshcount++;
 		
 		//every 5 minutes get the new lat long
-		if(refreshcount%60==0){
+		if(refreshcount%(6*5)==0){
 			setLatLon();
+		}
+		
+		if(refreshcount%(2*5)==0){
+			updateSchedule(-1, '', false);
 		}
 	}, 10000);
 	
@@ -262,8 +267,8 @@ function updateSchedule(workorderidtoshow, workordernotes, shownotification){
 					if(newworkorderarray.indexOf(workorderid)<0){
 						//not dealt with, must be new, add it to the list of workorders
 						newworkorderarray.push(workorderid);
-						downloadSafetyDoc(workorderid);
-						downloadWorkorderJobSheet(workorderid);
+						downloadSafetyDoc(workorderid, false);
+						downloadWorkorderJobSheet(workorderid, false);
 					}
 				});
 				
@@ -532,10 +537,10 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	checkInternet();
 	
-	downloadWorkorderJobSheet(workorderid);
+	downloadWorkorderJobSheet(workorderid, true);
 });
 
-function downloadWorkorderJobSheet(workorderid){
+function downloadWorkorderJobSheet(workorderid, openfile){
 	
 	if(isInternet){
 		var pdfurl = siteURL+"/workordertopdf.php?workorderid="+workorderid+"&apikey="+apikey
@@ -545,7 +550,7 @@ function downloadWorkorderJobSheet(workorderid){
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
 					fs.root.getFile("workorder-jobsheet-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
-							download(fileEntry, pdfurl, true, workorderid, 'jobsheet');
+							download(fileEntry, pdfurl, true, workorderid, 'jobsheet', openfile);
 
 					}, onErrorCreateFile);
 
@@ -563,10 +568,10 @@ function downloadWorkorderJobSheet(workorderid){
 $(document).on('click', '.downloadsafetydoc', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	checkInternet();
-	downloadSafetyDoc(workorderid);
+	downloadSafetyDoc(workorderid, true);
 });
 
-function downloadSafetyDoc(workorderid){
+function downloadSafetyDoc(workorderid, openfile){
 	
 	if(isInternet){
 		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey;
@@ -576,7 +581,7 @@ function downloadSafetyDoc(workorderid){
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
 					fs.root.getFile("workorder-safety-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
-							download(fileEntry, pdfurl, true, workorderid, 'safety');
+							download(fileEntry, pdfurl, true, workorderid, 'safety', openfile);
 
 					}, onErrorCreateFile);
 
@@ -598,7 +603,7 @@ function onErrorCreateFile(error){
 	alert("Error code CF1: "+JSON.stringify(error));
 }
 
-function download(fileEntry, uri, readBinaryData, workorderid, type) {
+function download(fileEntry, uri, readBinaryData, workorderid, type, openfile) {
 	
 	if(isInternet){
 		var fileTransfer = new FileTransfer();
@@ -608,7 +613,9 @@ function download(fileEntry, uri, readBinaryData, workorderid, type) {
 			fileURL,
 			function (entry) {
 				localStorage.setItem('workorder-'+type+'-'+workorderid, entry.toURL());
-				readFile(workorderid, type);
+				if(openfile){
+					readFile(workorderid, type);
+				}
 			},
 			function (error) {
 				alert("Error code D1: "+JSON.stringify(error));
