@@ -3,7 +3,6 @@ $(document).ready(function(){
 	document.addEventListener('deviceready', onDeviceReady,false);
 	//onDeviceReady();
 	checkInternet();
-	updateSchedule();
 	
 	//check the status of the internet every 10 seconds
 	setInterval(function(){
@@ -16,7 +15,7 @@ $(document).ready(function(){
 			setLatLon();
 		}
 		
-		if(refreshcount%(2*5)==0){
+		if(refreshcount%(2*5)==0 && loggedIn && isInternet){
 			updateSchedule(-1, '', false);
 		}
 	}, 10000);
@@ -900,6 +899,7 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 	switch (ui.toPage.prop("id")) {
 		case "userHome":
 			checkIfLoggedIn(true, 'userHome');
+			updateSchedule(-1, '', false);
 			break;
 		case "schedulePage":
 			checkIfLoggedIn(true, 'schedulePage');
