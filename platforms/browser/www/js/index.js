@@ -126,7 +126,7 @@ function showToast(message){
 			alert('toast error: ' + b)
 		});
 	}catch(error){
-		console.log("Unable to display toast: "+message);
+		alert("Unable to display toast: "+message);
 	}
 }
 
@@ -222,7 +222,7 @@ function afterLoginCheck(){
 		
 }
 
-function updateSchedule(workorderidtoshow, workordernotes){
+function updateSchedule(workorderidtoshow, workordernotes, shownotification){
 	
 	if(isInternet){
 		//update records, but only store it for now, let another function actually spit it out
@@ -262,28 +262,35 @@ function updateSchedule(workorderidtoshow, workordernotes){
 					if(newworkorderarray.indexOf(workorderid)<0){
 						//not dealt with, must be new, add it to the list of workorders
 						newworkorderarray.push(workorderid);
+						downloadSafetyDoc(workorderid);
+						downloadWorkorderJobSheet(workorderid);
 					}
 				});
 				
 				workorderlist = newworkorderarray;
 				var newworkorderstring = newworkorderarray.join(",");
 				localStorage.setItem('workorders', newworkorderstring);
+				
+				if(shownotification){
+					showToast("Succesfully updated schedule");
+				}
 			}else{
 				//do nothing if the request didn't work
+				showToast("Unable to update schedule: "+response.message);
 			}
-			refreshSchedulePage(workorderidtoshow, workordernotes);
+			refreshSchedulePage(workorderidtoshow, workordernotes, shownotification);
 		});
 		checkApiKey();
 	}else{
 		showToast("You are not connected to the internet so this page cannot be updated.  Showing a cached version if available");
-		refreshSchedulePage(-1, "");
+		refreshSchedulePage(-1, "", false);
 	}
 }
 
 var sortdir = 'asc';
 
 
-function refreshSchedulePage(workorderidwithnote, note){
+function refreshSchedulePage(workorderidwithnote, note, shownotification){
 	setLatLon();
 	
 	//put things onto the page from local schedule
@@ -386,7 +393,7 @@ function geolocationError(error){
 }
 
 $(document).on('click', '.refreshschedule', function(){
-	updateSchedule(-1, "");
+	updateSchedule(-1, "", true);
 });
 
 $(document).on('click', '.arrivebutton', function(){
@@ -415,7 +422,7 @@ $(document).on('click', '.arrivebutton', function(){
 					$('#apiresponse-'+workorderid).show();
 					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
 				}else{
-					updateSchedule(workorderid, "Succesfully set arrival time");
+					updateSchedule(workorderid, "Succesfully set arrival time", false);
 				}
 			}else{
 				$('#apiresponse-'+workorderid).removeClass('alert-success');
@@ -459,7 +466,7 @@ $(document).on('click', '.departbutton', function(){
 					$('#apiresponse-'+workorderid).show();
 					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
 				}else{
-					updateSchedule(workorderid, "Successfully set departure time");
+					updateSchedule(workorderid, "Successfully set departure time", false);
 				}
 			}else{
 				$('#apiresponse-'+workorderid).removeClass('alert-success');
@@ -500,7 +507,7 @@ $(document).on('click', '.submitnotes', function(){
 					$('#apiresponse-'+workorderid).show();
 					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
 				}else{
-					updateSchedule(workorderid, "Succesfully set note");
+					updateSchedule(workorderid, "Succesfully set note", false);
 				}
 			}else{
 				$('#apiresponse-'+workorderid).removeClass('alert-success');
@@ -525,12 +532,16 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	checkInternet();
 	
+	downloadWorkorderJobSheet(workorderid);
+});
+
+function downloadWorkorderJobSheet(workorderid){
+	
 	if(isInternet){
 		var pdfurl = siteURL+"/workordertopdf.php?workorderid="+workorderid+"&apikey="+apikey
 		
 		try{
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20 * 1024 * 1024, function (fs) {
-					console.log('file system open: ' + fs.name);
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
 					fs.root.getFile("workorder-jobsheet-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
@@ -546,19 +557,22 @@ $(document).on('click', '.downloadworkorderpdf', function(){
 	}else{
 		readFile(workorderid, 'jobsheet');
 	}
-});
+}
 
 /* File handling functions */
 $(document).on('click', '.downloadsafetydoc', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	checkInternet();
+	downloadSafetyDoc(workorderid);
+});
+
+function downloadSafetyDoc(workorderid){
 	
 	if(isInternet){
 		var pdfurl = siteURL+"/downloadfile.php?type=safety&workorderid="+workorderid+"&apikey="+apikey;
 		
 		try{
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 20 * 1024 * 1024, function (fs) {
-					console.log('file system open: ' + fs.name);
 
 					// Parameters passed to getFile create a new file or return the file if it already exists.
 					fs.root.getFile("workorder-safety-"+workorderid+".pdf", { create: true, exclusive: false }, function (fileEntry) {
@@ -574,7 +588,7 @@ $(document).on('click', '.downloadsafetydoc', function(){
 	}else{
 		readFile(workorderid, 'safety');
 	}
-});
+}
 
 function onErrorLoadFs(error){
 	alert("Error code LF1: "+JSON.stringify(error));
@@ -681,7 +695,7 @@ function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(e
 
 /* Expenses page */
 scheduleformenabled = false;
-function populateExpensesForm(){
+function populateExpensesForm(shownotification){
 	enableform = true;
 	
 	if(isInternet){
@@ -721,6 +735,10 @@ function populateExpensesForm(){
 						scheduleformenabled = true;
 						$('#submitexpensesbutton').removeClass("ui-state-disabled");
 						$('#submitexpensesbutton2').removeClass("ui-state-disabled");
+						
+						if(shownotification){
+							showToast("Succesfully updated form");
+						}
 					}
 				});
 			}
@@ -730,6 +748,11 @@ function populateExpensesForm(){
 		showToast("Unable to connect to the API.  You need to be connected to the internet in order to submit expense claims");
 	}
 }
+
+$(document).on('click', '#refreshexpenses', function(e){
+	e.preventDefault();
+	populateExpensesForm(true);
+});
 
 $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', function(e){
 	e.preventDefault();
@@ -873,14 +896,14 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 			break;
 		case "schedulePage":
 			checkIfLoggedIn(true, 'schedulePage');
-			updateSchedule(-1, "");
+			updateSchedule(-1, "", false);
 			break;
 		case "login":
 			checkIfLoggedIn(false, '');
 			break;
 		case "expensesPage":
 			checkIfLoggedIn(true, 'expensesPage');
-			populateExpensesForm();
+			populateExpensesForm(false);
 			break;
 		default:
 			console.log("NO PAGE INIT FUNCTION")
