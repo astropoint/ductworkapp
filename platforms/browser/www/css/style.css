@@ -29,7 +29,7 @@ form {
 	outline: none;
 }
 
-.btn {
+.fancyyellowbutton {
 	width: 98.6%;
 	border: none;
 	margin-top: 5px;
@@ -239,3 +239,15 @@ a{
 .workordertype{
 	clear:left;
 }
+
+.ui-btn-blue:not(.ui-state-disabled){
+	color: #fff;
+	background-color: #337ab7;
+	border-color: #2e6da4;
+	font-weight: normal;
+}
+
+.failedform{
+	border: 2px outset red !important;
+	background-color: #FFCCCC !important;
+} 

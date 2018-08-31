@@ -52,7 +52,7 @@
 				</form>
 				
 				<div>
-					<input type="submit" value="LOGIN" class="btn" onsubmit="inputValidate()" id="loginBtn">
+					<input type="submit" value="LOGIN" class="fancyyellowbutton" onsubmit="inputValidate()" id="loginBtn">
 					<br>
 					<div id= "feedback"></div>
 				</div>
@@ -82,8 +82,8 @@
 				<div class="menu">
 					<a href="#schedulePage" class="fancybutton">My Schedule</a>
 					<br><br>
-					<!--<a href="Expenses_Page.html" class="button">Expenses</a>
-					<br><br>-->
+					<a href="#expensesPage" class="fancybutton">Expenses</a>
+					<br><br>
 					<a class="fancybutton" href='#' id="logout" >Log Out</a>
 				</div>
   
@@ -117,6 +117,64 @@
 				
 				<div id='noworkorders'>You have no workorders scheduled within the next 2 weeks</div>
 				<div id='workorderschedulelist'></div>
+			
+			</div>
+		</div>
+	</div>
+
+	<div data-role="page" class='mypage' id="expensesPage">
+		<div data-role="header">
+			<title>Expenses</title>
+		</div>
+		
+		<div class='row' id="topnav">
+			<div class='col-3'><a id="Home" href='#userHome'>Menu</a></div>
+			<div class="Username col-6">
+				<a class="full_name"></a>
+			</div>
+
+		</div>
+
+		<div role="main" class="ui-content">
+			<h4>Submit Expense</h4>
+			
+			<form>
+				
+				<button type="button" id='submitexpensesbutton2' class="submitexpensesbutton ui-btn ui-btn-blue ui-state-disabled">Submit Expense</button>
+				
+				<div class='form-group' id='expensedatediv'>
+					<label for='expensedate'>Date</label>
+					<input type='date' class='form-control' id='expensedate' name='expensedate' />
+				</div>
+				
+				<div class='form-group' id='expensetypediv'>
+					<label for='expensetype'>Expense Type</label>
+					<select class='form-control' id='expensetype' name='expensetype'>
+					
+					</select>
+				</div>
+				
+				<div class='form-group' id='expensepaymentmethoddiv'>
+					<label for='expensepaymentmethod'>Payment Method</label>
+					<select class='form-control' id='expensepaymentmethod' name='expensepaymentmethod'>
+					
+					</select>
+				</div>
+				
+				<div class='form-group' id='expenseamountdiv'>
+					<label for='expenseamount'>Amount (in &pound;)</label>
+					<input type='number' step='0.01' min='0' class='form-control' id='expenseamount' name='expenseamount' />
+				</div>
+				
+				<div class='form-group'>
+					<div id='receiptphotodiv' style='display:none'><img width='90%' id='receiptphoto' src=''  /></div>
+					<input type='button' class='fancyyellowbutton' id='getphotobutton' name='getphotobutton' value='Capture Image' />
+				</div>
+				
+				<button type="button" id='submitexpensesbutton' class="submitexpensesbutton ui-btn ui-btn-blue ui-state-disabled">Submit Expense</button>
+			
+			</form>
+			<div id='expenseformresult' style='display:none' class='alert'></div>
 				
 		</div>
 	</div>

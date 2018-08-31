@@ -24,6 +24,7 @@ var refreshcount = 0;
 var agendasort = 'desc';
 var loggedIn = false;
 var workorderlist;
+var maxUploadSize = 8;
 
 var spinner = '<svg class="svg-inline--fa fa-spinner fa-w-16 fa-spin" aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"></path></svg>';
 
@@ -80,6 +81,7 @@ function checkIfLoggedIn(requirelogin, redirectpage){
 		window.location.href='#login';
 	}else if(requirelogin){
 		afterLoginCheck(); //requires login, is logged in, just run required function
+		checkApiKey();
 	}else if(!requirelogin && loggedIn=='1'){
 		
 		afterLoginCheck();
@@ -118,11 +120,15 @@ function checkApiKey(){
 }
 
 function showToast(message){
-	window.plugins.toast.showLongBottom(message, function(a){
-		//Toast Success
-	}, function(b){
-		alert('toast error: ' + b)
-	});
+	try{
+		window.plugins.toast.showLongBottom(message, function(a){
+			//Toast Success
+		}, function(b){
+			alert('toast error: ' + b)
+		});
+	}catch(error){
+		console.log("Unable to display toast: "+message);
+	}
 }
 
 $(document).on('click', '.goback', function(e){
@@ -383,9 +389,6 @@ function geolocationError(error){
 $(document).on('click', '.refreshschedule', function(){
 	updateSchedule(-1, "");
 });
-
-
-
 
 $(document).on('click', '.arrivebutton', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
@@ -677,6 +680,201 @@ function removeFileErrorHandler2(error){alert("Error code RM2:"+JSON.stringify(e
 function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(error));}
 
 
+/* Expenses page */
+scheduleformenabled = false;
+function populateExpensesForm(){
+	enableform = true;
+	
+	if(isInternet){
+	
+		var data = "action=getcodes&codetype=Receipt Payment Method&apikey="+apikey;
+		var paymentmethods = "<option value=''></option>";
+		var expensestypes = "<option value=''></option>";
+		
+		$.ajax({
+			url: apiURL,
+			data: data,
+			dataType: "json",
+			type: 'post'
+		}).done(function(response){
+			if(response.success){
+				$.each(response.data, function(key, value){
+					paymentmethods += "<option value='"+key+"'>"+value+"</option>";
+				});
+				$('#expensepaymentmethod').html(paymentmethods);
+				$('#expensepaymentmethod').trigger('change');
+				
+				data = "action=getcodes&codetype=Receipt Type&apikey="+apikey;
+				$.ajax({
+					url: apiURL,
+					data: data,
+					dataType: "json",
+					type: 'post'
+				}).done(function(response){
+					if(response.success){
+						$.each(response.data, function(key, value){
+							expensestypes += "<option value='"+key+"'>"+value+"</option>";
+						});
+						$('#expensetype').html(expensestypes);
+						$('#expensetype').trigger('change');
+						
+						//enable the form now
+						scheduleformenabled = true;
+						$('#submitexpensesbutton').removeClass("ui-state-disabled");
+						$('#submitexpensesbutton2').removeClass("ui-state-disabled");
+					}
+				});
+			}
+		});
+		
+	}else{
+		showToast("Unable to connect to the API.  You need to be connected to the internet in order to submit expense claims");
+	}
+}
+
+$(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', function(e){
+	e.preventDefault();
+	checkInternet();
+	
+	if(isInternet){
+		$('#expenseformresult').removeClass('alert-danger');
+		$('#expenseformresult').removeClass('alert-success');
+		$('#expenseformresult').hide();
+		
+		$('#expensedatediv').removeClass('failedform');
+		$('#expensetypediv').removeClass('failedform');
+		$('#expensepaymentmethoddiv').removeClass('failedform');
+		$('#expenseamountdiv').removeClass('failedform');
+		
+		var expensedate = $('#expensedate').val();
+		var expensetype = $('#expensetype').val();
+		var expensepaymentmethod = $('#expensepaymentmethod').val();
+		var expenseamount = $('#expenseamount').val();
+		
+		var goodform = true;
+		var errors = [];
+		
+		if(expensedate==''){
+			goodform = false;
+			errors.push("The date the expense was made must be set");
+			$('#expensedatediv').addClass('failedform');
+		}
+		
+		if(expensetype==''){
+			goodform = false;
+			errors.push("You need to select an expense type");
+			$('#expensetypediv').addClass('failedform');
+		}
+		
+		if(expensepaymentmethod==''){
+			goodform = false;
+			errors.push("You need to select a payment type");
+			$('#expensepaymentmethoddiv').addClass('failedform');
+		}
+		
+		if(expenseamount==''){
+			goodform = false;
+			errors.push("The amount needs to be entered");
+			$('#expenseamountdiv').addClass('failedform');
+		}
+		
+		if(goodform){
+			var photouri = $('#receiptphoto').attr('src');
+			
+			var options = new FileUploadOptions();
+			options.fileKey = "receiptphoto";
+			options.fileName = photouri.substr(imageURI.lastIndexOf('/') + 1);
+			options.mimeType = "image/jpeg";
+			var params = new Object();
+			params.deferprofilesave = "1";
+			params.action = "uploadreceipt";
+			params.apikey = apikey;
+			params.receipt_date = expensedate;
+			params.payment_type = expensetype;
+			params.payment_method = expensepaymentmethod;
+			params.amount = apikey;
+			options.params = expenseamount;
+			options.chunkedMode = false;
+
+			var ft = new FileTransfer();
+				
+			var uploadURL = apiURL;
+			ft.upload(imageURI, uploadURL, function(result){
+				
+				try{
+					var output = JSON.parse(result.response);
+					if(output.success){
+						$('#expensedate').val('');
+						$('#expensetype').val('');
+						$('#expensepaymentmethod').val('');
+						$('#expenseamount').val('');
+						//$('#receiptphoto').attr('src', '');
+						//$('#receiptphotodiv').hide();
+						
+						$('#expenseformresult').addClass('alert-success');
+						$('#expenseformresult').html("Succesfully uploaded expense claim");
+						$('#expenseformresult').slideDown();
+					}else{
+						$('#profileimagestatus').show();
+						$('#profilestatusresponse').html("Unable to save receipt: "+output.message);
+					}
+					//$('#updateprofileimagespinner').hide();
+					//$('#profilepicture').show();
+				}catch(error){
+					$('#profileimagestatus').show();
+					$('#updateprofileimagespinner').hide();
+					if(parseInt(result.bytesSent)>(maxUploadSize*1024*1024)){
+						$('#profileimagestatus').html("The file you are trying to upload is too large, please select an image less than "+maxUploadSize+"MB large");
+					}else{
+						$('#expenseformresult').addClass('alert-danger');
+						$('#expenseformresult').show();
+						$('#expenseformresult').html("Unable to upload photo: "+JSON.stringify(error));
+					}
+				}
+			}, function(error){
+						$('#expenseformresult').addClass('alert-danger');
+						$('#expenseformresult').show();
+						$('#expenseformresult').html("Unable to upload photo: "+JSON.stringify(error));
+			}, options);
+
+		}else{
+			$('#expenseformresult').addClass('alert-danger');
+			$('#expenseformresult').html(errors.join("<br>"));
+			$('#expenseformresult').slideDown();
+		}
+	}else{
+		showToast("Unable to connect to the API, you need to be connected to the internet to upload expense photos");
+	}
+		
+});
+
+$(document).on('click', '#getphotobutton', function(e){
+	e.preventDefault();
+	
+	navigator.camera.getPicture(function(imageURI){
+			//on success
+			$('#receiptphoto').attr('src', imageURI);
+			$('#receiptphotodiv').show();
+		}, function(message){
+			//on fail
+			alert('Get photo failed because: ' + message);
+		}, 
+		{ 
+			quality: 50, 
+			destinationType: Camera.DestinationType.FILE_URI 
+		}); 
+});
+
+
+
+function onCameraSuccess(imageURI) {
+	var image = document.getElementById('myImage');
+	image.src = imageURI;
+}
+
+function onCameraFail(message) {
+	
+}
 
 
 function dateWithoutSeconds(date){
@@ -703,6 +901,10 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 			break;
 		case "login":
 			checkIfLoggedIn(false, '');
+			break;
+		case "expensesPage":
+			checkIfLoggedIn(true, 'expensesPage');
+			populateExpensesForm();
 			break;
 		default:
 			console.log("NO PAGE INIT FUNCTION")
