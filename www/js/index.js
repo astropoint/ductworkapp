@@ -124,7 +124,16 @@ function checkApiKey(){
 
 function showToast(message){
 	try{
-		window.plugins.toast.showLongBottom(message, function(a){
+		window.plugins.toast.showWithOptions(
+		{
+			message: message,
+			duration: "long",
+			position: "bottom",
+			styling: {
+				backgroundColor: '#fae014',
+				textColor: '#000000'
+			}
+		}, function(a){
 			//Toast Success
 		}, function(b){
 			alert('toast error: ' + b)
@@ -339,7 +348,7 @@ function refreshSchedulePage(workorderidwithnote, note, shownotification){
 			}
 			output += "' id='departbtn-"+workorder.id+"'>Depart</button>";
 			output += "<div class='row'>";
-			output += "<div class='col-sm-6 col-12'><input class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></input></div>";
+			output += "<div class='col-sm-6 col-12'><textarea class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></textarea></div>";
 			output += "<div class='col-sm-6 col-12 pull-right'><button class='submitnotes' id='submitnotes-"+workorder.id+"'>Submit Engineer Notes</button></div>";
 			output += "</div>";
 			output += "<div class='notesubmitted alert alert-success'";
