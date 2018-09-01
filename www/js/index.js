@@ -861,7 +861,7 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 			}).fail(function(error){
 				$('#expensesspinnerdiv').hide();
 				$('#expenseformresult').addClass('alert-fail');
-				$('#expenseformresult').html("Unable to submit expense: <br>"+error);
+				$('#expenseformresult').html("Unable to submit expense: <br>"+JSON.stringify(error));
 				$('#expenseformresult').slideDown();
 			});
 		}else{
