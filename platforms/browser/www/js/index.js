@@ -823,6 +823,10 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 		}
 		
 		if(goodform){
+			$('#expensesspinnerdiv').show();
+			
+			$('#submitexpensesbutton').addClass('ui-state-disabled');
+			$('#submitexpensesbutton2').addClass('ui-state-disabled');
 			$.ajax({
 				type: 'POST',
 				url:apiURL,
@@ -841,14 +845,23 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 				$('#expensedate').val('');
 				$('#expensetype').val('');
 				$('#expensepaymentmethod').val('');
-				$('#amount').val('');
+				$('#expenseamount').val('');
 				$('#expensepaymentmethod').trigger('change');
-				$('#expenseamount').trigger('change');
+				$('#expensetype').trigger('change');
 				$('#receiptphoto').attr('src', '');
 				$('#receiptphotodiv').hide();
 				
+				$('#expensesspinnerdiv').hide();
+				$('#submitexpensesbutton').removeClass('ui-state-disabled');
+				$('#submitexpensesbutton2').removeClass('ui-state-disabled');
+				
 				$('#expenseformresult').addClass('alert-success');
 				$('#expenseformresult').html("Succesfully uploaded expense claim");
+				$('#expenseformresult').slideDown();
+			}).fail(function(error){
+				$('#expensesspinnerdiv').hide();
+				$('#expenseformresult').addClass('alert-fail');
+				$('#expenseformresult').html("Unable to submit expense: <br>"+error);
 				$('#expenseformresult').slideDown();
 			});
 		}else{
