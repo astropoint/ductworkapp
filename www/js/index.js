@@ -10,12 +10,13 @@ $(document).ready(function(){
 
 		refreshcount++;
 		
-		//every 5 minutes get the new lat long
+		//every 5 minutes get the new lat long (running every 10 seconds, so 6*5 to get 60 seconds * 5 to get 5 minutes and modulus this against the refresh counter)
 		if(refreshcount%(6*5)==0){
 			setLatLon();
 		}
 		
-		if(refreshcount%(2*5)==0 && loggedIn && isInternet){
+		//every 2 minutes try to update
+		if(refreshcount%(6*2)==0 && loggedIn && isInternet){
 			updateSchedule(-1, '', false);
 			
 			receiptUpload();
@@ -33,6 +34,9 @@ var loggedIn = false;
 var workorderlist;
 var numreceipts = 0;
 var receiptdetails;
+var departure;
+var arrival;
+var notes;
 
 var spinner = '<svg class="svg-inline--fa fa-spinner fa-w-16 fa-spin" aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"></path></svg>';
 
@@ -52,7 +56,7 @@ function onDeviceReady(){
 		}
 }
 
-var siteURL = "https://dwadmin.dwcompliance.co.uk";
+var siteURL = "https://ductworkadmindev.duckdns.org";
 var apiURL = siteURL+"/api/api.php";
 var isInternet = false;
 var maxUploadSize = 8;
@@ -204,6 +208,7 @@ $(document).on('click',"#loginBtn",function(e){
 					localStorage.setItem("full_name", response.data.full_name);
 					localStorage.setItem("email", response.data.email);
 					localStorage.setItem("workorders", "");
+					localStorage.setItem("numnotes", 0);
 					
 					afterLoginCheck();
 					
@@ -240,65 +245,135 @@ function afterLoginCheck(){
 		
 }
 
-function updateSchedule(workorderidtoshow, workordernotes, shownotification){
+function makeNotesCall(j){
+	var numnotes = localStorage.getItem("numnotes");
+	if (j > numnotes){
+		updatingnotes = false;
+		return;
+	}
 	
-	if(isInternet){
-		//update records, but only store it for now, let another function actually spit it out
-		data = "action=getmyworkorders&apikey="+apikey;
-		$.ajax({
+	if(localStorage.getItem("note_"+j+"_status") == '0'){
+		localStorage.setItem("note_"+j+"_status", 5);
+		return $.ajax({
+			type: 'POST',
 			url: apiURL,
-			data: data,
+			data: {
+				"action": "updateengineernotes",
+				"apikey": apikey,
+				"workorderid": localStorage.getItem("note_"+j+"_workorderid"),
+				"notes": localStorage.getItem("note_"+j+"_note")
+			},
 			dataType: "json",
-			type: 'post'
 		}).done(function(response){
+			
 			if(response.success){
-				var workordersdealtwith = [];
-				
-				for(var i = 0;i<response.data.total;i++){
-					var thisworkorder = response.data.workorders[i];
-					var workorderid = thisworkorder.id;
-					
-					localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
-					workordersdealtwith.push(workorderid);
-				}
-				
-				var newworkorderarray = []; 
-				
-				$.each(workorderlist, function (key, workorderid){
-					workorderid = parseInt(workorderid);
-					if(workordersdealtwith.indexOf(workorderid)<0){
-						//not dealt with, so must be removed, reset field to blank
-						localStorage.setItem('workorder-'+workorderid, "");
-						
-						removeFile(workorderid, 'jobsheet');
-						
-					}else{
-						newworkorderarray.push(workorderid);
-					}
-				});
-				$.each(workordersdealtwith, function (key, workorderid){
-					if(newworkorderarray.indexOf(workorderid)<0){
-						//not dealt with, must be new, add it to the list of workorders
-						newworkorderarray.push(workorderid);
-						downloadSafetyDoc(workorderid, false);
-						downloadWorkorderJobSheet(workorderid, false);
-					}
-				});
-				
-				workorderlist = newworkorderarray;
-				var newworkorderstring = newworkorderarray.join(",");
-				localStorage.setItem('workorders', newworkorderstring);
-				
-				if(shownotification){
-					showToast("Succesfully updated schedule");
+				if(response.data.affected_rows==-1){
+					showToast("Unable to update note, will try again later");
+					localStorage.setItem("note_"+j+"_status", 0);
+				}else{
+					showToast("Succesfully uploaded note");
+					localStorage.setItem("note_"+j+"_status", 9);
 				}
 			}else{
-				//do nothing if the request didn't work
-				showToast("Unable to update schedule: "+response.message);
+				showToast("Unable to update note, will try again later");
+				localStorage.setItem("note_"+j+"_status", 0);
 			}
-			refreshSchedulePage(workorderidtoshow, workordernotes, shownotification);
+			if(j==numnotes-1){
+				updatingnotes = false;
+			}
+		}).fail(function(){
+			localStorage.setItem("note_"+j+"_status", 0);
+			if(j==numnotes-1){
+				updatingnotes = false;
+			}
+		}).then(function () {
+			// return the next promise, or not if done
+			makeNotesCall(j + 1);
 		});
-		checkApiKey();
+	}else{
+		makeNotesCall(j + 1);
+	}
+}
+
+var updatingnotes = false;
+var updatingarrival = false;
+var updatingdeparture = false;
+function tryUploads(callback){
+	numnotes = localStorage.getItem("numnotes");
+	if(numnotes > 0){
+		updatingnotes = true;
+		makeNotesCall(0);
+	}
+	
+	var tryingtoupdate = setInterval(function(){
+		//wait intervals of 1 second before 
+		if(!updatingarrival && !updatingdeparture && !updatingnotes){
+			callback();
+			clearInterval(tryingtoupdate);
+		}
+	}, 1000);
+}
+
+function updateSchedule(workorderidtoshow, workordernotes, shownotification){
+	if(isInternet){
+		tryUploads(function(){
+			//update records, but only store it for now, let another function actually spit it out
+			data = "action=getmyworkorders&apikey="+apikey;
+			$.ajax({
+				url: apiURL,
+				data: data,
+				dataType: "json",
+				type: 'post'
+			}).done(function(response){
+				if(response.success){
+					var workordersdealtwith = [];
+					
+					for(var i = 0;i<response.data.total;i++){
+						var thisworkorder = response.data.workorders[i];
+						var workorderid = thisworkorder.id;
+						
+						localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
+						workordersdealtwith.push(workorderid);
+					}
+					
+					var newworkorderarray = []; 
+					
+					$.each(workorderlist, function (key, workorderid){
+						workorderid = parseInt(workorderid);
+						if(workordersdealtwith.indexOf(workorderid)<0){
+							//not dealt with, so must be removed, reset field to blank
+							localStorage.setItem('workorder-'+workorderid, "");
+							
+							removeFile(workorderid, 'jobsheet');
+							
+						}else{
+							newworkorderarray.push(workorderid);
+						}
+					});
+					$.each(workordersdealtwith, function (key, workorderid){
+						if(newworkorderarray.indexOf(workorderid)<0){
+							//not dealt with, must be new, add it to the list of workorders
+							newworkorderarray.push(workorderid);
+							downloadSafetyDoc(workorderid, false);
+							downloadWorkorderJobSheet(workorderid, false);
+						}
+					});
+					
+					workorderlist = newworkorderarray;
+					var newworkorderstring = newworkorderarray.join(",");
+					localStorage.setItem('workorders', newworkorderstring);
+					
+					if(shownotification){
+						showToast("Succesfully updated schedule");
+					}
+				}else{
+					//do nothing if the request didn't work
+					showToast("Unable to update schedule: "+response.message);
+				}
+				refreshSchedulePage(workorderidtoshow, workordernotes, shownotification);
+			});
+			checkApiKey();
+		});
 	}else{
 		showToast("You are not connected to the internet so this page cannot be updated.  Showing a cached version if available");
 		refreshSchedulePage(-1, "", false);
@@ -503,43 +578,24 @@ $(document).on('click', '.departbutton', function(){
 
 $(document).on('click', '.submitnotes', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
+	numnotes = parseInt(localStorage.getItem("numnotes"));
 	
+	localStorage.setItem('note_'+numnotes+"_workorderid", workorderid);
+	localStorage.setItem('note_'+numnotes+"_note", $('#engineernotes-'+workorderid).val());
+	localStorage.setItem('note_'+numnotes+"_status", "0");
+	numnotes++;
+	localStorage.setItem("numnotes", numnotes);
 	if(isInternet){
-			
-		$.ajax({
-			type: 'POST',
-			url:apiURL,
-			data: {
-				"action": "updateengineernotes",
-				"apikey": apikey,
-				"workorderid": workorderid,
-				"notes": $('#engineernotes-'+workorderid).val()
-			},
-			dataType: "json",
-		}).done(function(response){
-			
-			if(response.success){
-				if(response.data.affected_rows==-1){
-					$('#apiresponse-'+workorderid).removeClass('alert-success');
-					$('#apiresponse-'+workorderid).addClass('alert-danger');
-					$('#apiresponse-'+workorderid).show();
-					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
-				}else{
-					updateSchedule(workorderid, "Succesfully set note", false);
-				}
-			}else{
-				$('#apiresponse-'+workorderid).removeClass('alert-success');
-				$('#apiresponse-'+workorderid).addClass('alert-danger');
-				$('#apiresponse-'+workorderid).show();
-				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
-			}
-		});
+		updateSchedule(workorderid, "Succesfully set note", false);
 	}else{
-		$('#apiresponse-'+workorderid).removeClass('alert-success');
-		$('#apiresponse-'+workorderid).addClass('alert-danger');
+		$('#apiresponse-'+workorderid).removeClass('alert-danger');
+		$('#apiresponse-'+workorderid).addClass('alert-success');
 		$('#apiresponse-'+workorderid).show();
-		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
+		$('#engineernotes-'+workorderid).val('');
+		$('#apiresponse-'+workorderid).html("No internet connection detected, note saved for later upload");
 	}
+	
+	
 });
 
 
