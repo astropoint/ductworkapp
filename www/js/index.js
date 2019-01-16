@@ -17,7 +17,10 @@ $(document).ready(function(){
 		
 		if(refreshcount%(2*5)==0 && loggedIn && isInternet){
 			updateSchedule(-1, '', false);
+			
+			receiptUpload();
 		}
+		
 	}, 10000);
 	
 	//setTimeout(checkIfLoggedIn, 20);
@@ -28,6 +31,8 @@ var refreshcount = 0;
 var agendasort = 'desc';
 var loggedIn = false;
 var workorderlist;
+var numreceipts = 0;
+var receiptdetails;
 
 var spinner = '<svg class="svg-inline--fa fa-spinner fa-w-16 fa-spin" aria-hidden="true" data-prefix="fas" data-icon="spinner" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M304 48c0 26.51-21.49 48-48 48s-48-21.49-48-48 21.49-48 48-48 48 21.49 48 48zm-48 368c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zm208-208c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48zM96 256c0-26.51-21.49-48-48-48S0 229.49 0 256s21.49 48 48 48 48-21.49 48-48zm12.922 99.078c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.491-48-48-48zm294.156 0c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48c0-26.509-21.49-48-48-48zM108.922 60.922c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.491-48-48-48z"></path></svg>';
 
@@ -771,108 +776,136 @@ $(document).on('click', '#refreshexpenses', function(e){
 
 $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', function(e){
 	e.preventDefault();
-	checkInternet();
 	
-	if(isInternet){
-		$('#expenseformresult').removeClass('alert-danger');
-		$('#expenseformresult').removeClass('alert-success');
-		$('#expenseformresult').hide();
-		
-		$('#expensedatediv').removeClass('failedform');
-		$('#expensetypediv').removeClass('failedform');
-		$('#expensepaymentmethoddiv').removeClass('failedform');
-		$('#expenseamountdiv').removeClass('failedform');
-		
-		var expensedate = $('#expensedate').val();
-		var expensetype = $('#expensetype').val();
-		var expensepaymentmethod = $('#expensepaymentmethod').val();
-		var expenseamount = $('#expenseamount').val();
-		var base64encode = $('#receiptphoto').attr('src');
-		
-		var goodform = true;
-		var errors = [];
-		
-		if(expensedate==''){
-			goodform = false;
-			errors.push("The date the expense was made must be set");
-			$('#expensedatediv').addClass('failedform');
-		}
-		
-		if(expensetype==''){
-			goodform = false;
-			errors.push("You need to select an expense type");
-			$('#expensetypediv').addClass('failedform');
-		}
-		
-		if(expensepaymentmethod==''){
-			goodform = false;
-			errors.push("You need to select a payment type");
-			$('#expensepaymentmethoddiv').addClass('failedform');
-		}
-		
-		if(expenseamount==''){
-			goodform = false;
-			errors.push("The amount needs to be entered");
-			$('#expenseamountdiv').addClass('failedform');
-		}
-		
-		if(base64encode==''){
-			goodform = false;
-			errors.push("You need to take a photo of the receipt or other documentation");
-			$('#receiptphotodiv').addClass('failedform');
-		}
-		
-		if(goodform){
-			$('#expensesspinnerdiv').show();
-			
-			$('#submitexpensesbutton').addClass('ui-state-disabled');
-			$('#submitexpensesbutton2').addClass('ui-state-disabled');
-			$.ajax({
-				type: 'POST',
-				url:apiURL,
-				data: {
-					"action": "uploadreceipt",
-					"apikey": apikey,
-					"receipt_date": expensedate,
-					"payment_type": expensetype,
-					"payment_method": expensepaymentmethod,
-					"amount": expenseamount,
-					"base64encode": base64encode
-				},
-				dataType: "json",
-			}).done(function(response){
-				
-				$('#expensedate').val('');
-				$('#expensetype').val('');
-				$('#expensepaymentmethod').val('');
-				$('#expenseamount').val('');
-				$('#expensepaymentmethod').trigger('change');
-				$('#expensetype').trigger('change');
-				$('#receiptphoto').attr('src', '');
-				$('#receiptphotodiv').hide();
-				
-				$('#expensesspinnerdiv').hide();
-				$('#submitexpensesbutton').removeClass('ui-state-disabled');
-				$('#submitexpensesbutton2').removeClass('ui-state-disabled');
-				
-				$('#expenseformresult').addClass('alert-success');
-				$('#expenseformresult').html("Succesfully uploaded expense claim");
-				$('#expenseformresult').slideDown();
-			}).fail(function(error){
-				$('#expensesspinnerdiv').hide();
-				$('#expenseformresult').addClass('alert-fail');
-				$('#expenseformresult').html("Unable to submit expense: <br>"+JSON.stringify(error));
-				$('#expenseformresult').slideDown();
-			});
-		}else{
-			$('#expenseformresult').addClass('alert-danger');
-			$('#expenseformresult').html(errors.join("<br>"));
-			$('#expenseformresult').slideDown();
-		}
-	}else{
-		showToast("Unable to connect to the API, you need to be connected to the internet to upload expense photos");
+	$('#expenseformresult').removeClass('alert-danger');
+	$('#expenseformresult').removeClass('alert-success');
+	$('#expenseformresult').hide();
+	
+	$('#expensedatediv').removeClass('failedform');
+	$('#expensetypediv').removeClass('failedform');
+	$('#expensepaymentmethoddiv').removeClass('failedform');
+	$('#expenseamountdiv').removeClass('failedform');
+	
+	var expensedate = $('#expensedate').val();
+	var expensetype = $('#expensetype').val();
+	var expensepaymentmethod = $('#expensepaymentmethod').val();
+	var expenseamount = $('#expenseamount').val();
+	var base64encode = $('#receiptphoto').attr('src');
+	
+	var goodform = true;
+	var errors = [];
+	
+	if(expensedate==''){
+		goodform = false;
+		errors.push("The date the expense was made must be set");
+		$('#expensedatediv').addClass('failedform');
 	}
+	
+	if(expensetype==''){
+		goodform = false;
+		errors.push("You need to select an expense type");
+		$('#expensetypediv').addClass('failedform');
+	}
+	
+	if(expensepaymentmethod==''){
+		goodform = false;
+		errors.push("You need to select a payment type");
+		$('#expensepaymentmethoddiv').addClass('failedform');
+	}
+	
+	if(expenseamount==''){
+		goodform = false;
+		errors.push("The amount needs to be entered");
+		$('#expenseamountdiv').addClass('failedform');
+	}
+	
+	if(base64encode==''){
+		goodform = false;
+		errors.push("You need to take a photo of the receipt or other documentation");
+		$('#receiptphotodiv').addClass('failedform');
+	}
+	
+	if(goodform){
+		$('#expensesspinnerdiv').show();
 		
+		$('#submitexpensesbutton').addClass('ui-state-disabled');
+		$('#submitexpensesbutton2').addClass('ui-state-disabled');
+		
+		// store details locally, then call check script
+		localStorage.setItem("receipt_"+numreceipts+"_expensedate", expensedate);
+		localStorage.setItem("receipt_"+numreceipts+"_expensetype", expensetype);
+		localStorage.setItem("receipt_"+numreceipts+"_expensepaymentmethod", expensepaymentmethod);
+		localStorage.setItem("receipt_"+numreceipts+"_expenseamount", expenseamount);
+		localStorage.setItem("receipt_"+numreceipts+"_base64encode", base64encode);
+		localStorage.setItem("receipt_"+numreceipts+"_status", "0");
+		numreceipts++;
+		if(isInternet){
+			receiptUpload();
+		}else{
+			showToast("No internet connection detected, storing information to upload later");
+		}
+		
+		$('#expensedate').val('');
+		$('#expensetype').val('');
+		$('#expensepaymentmethod').val('');
+		$('#expenseamount').val('');
+		$('#expensepaymentmethod').trigger('change');
+		$('#expensetype').trigger('change');
+		$('#receiptphoto').attr('src', '');
+		$('#receiptphotodiv').hide();
+		
+		$('#expensesspinnerdiv').hide();
+		$('#submitexpensesbutton').removeClass('ui-state-disabled');
+		$('#submitexpensesbutton2').removeClass('ui-state-disabled');
+		
+		$('#expenseformresult').addClass('alert-success');
+		$('#expenseformresult').html("Succesfully uploaded expense claim");
+		$('#expenseformresult').slideDown();
+		
+		/*
+		$.ajax({
+			type: 'POST',
+			url:apiURL,
+			data: {
+				"action": "uploadreceipt",
+				"apikey": apikey,
+				"receipt_date": expensedate,
+				"payment_type": expensetype,
+				"payment_method": expensepaymentmethod,
+				"amount": expenseamount,
+				"base64encode": base64encode
+			},
+			dataType: "json",
+		}).done(function(response){
+			
+			$('#expensedate').val('');
+			$('#expensetype').val('');
+			$('#expensepaymentmethod').val('');
+			$('#expenseamount').val('');
+			$('#expensepaymentmethod').trigger('change');
+			$('#expensetype').trigger('change');
+			$('#receiptphoto').attr('src', '');
+			$('#receiptphotodiv').hide();
+			
+			$('#expensesspinnerdiv').hide();
+			$('#submitexpensesbutton').removeClass('ui-state-disabled');
+			$('#submitexpensesbutton2').removeClass('ui-state-disabled');
+			
+			$('#expenseformresult').addClass('alert-success');
+			$('#expenseformresult').html("Succesfully uploaded expense claim");
+			$('#expenseformresult').slideDown();
+		}).fail(function(error){
+			$('#expensesspinnerdiv').hide();
+			$('#expenseformresult').addClass('alert-fail');
+			$('#expenseformresult').html("Unable to submit expense: <br>"+JSON.stringify(error));
+			$('#expenseformresult').slideDown();
+		});
+		*/
+	}else{
+		$('#expenseformresult').addClass('alert-danger');
+		$('#expenseformresult').html(errors.join("<br>"));
+		$('#expenseformresult').slideDown();
+	}
 });
 
 $(document).on('click', '#getphotobutton', function(e){
@@ -892,6 +925,47 @@ $(document).on('click', '#getphotobutton', function(e){
 		}); 
 });
 
+function receiptUpload(){
+	checkInternet();
+	if(isInternet){
+		for(i = 0;i<numreceipts;i++){
+			if(localStorage.getItem("receipt_"+i+"_status")=='0'){
+				localStorage.setItem("receipt_"+i+"_status", "5");
+				//not uploaded yet, so lets try
+				expensedate = localStorage.getItem("receipt_"+i+"_expensedate");
+				expensetype = localStorage.getItem("receipt_"+i+"_expensetype");
+				expensepaymentmethod = localStorage.getItem("receipt_"+i+"_expensepaymentmethod");
+				expenseamount = localStorage.getItem("receipt_"+i+"_expenseamount");
+				base64encode = localStorage.getItem("receipt_"+i+"_base64encode");
+				$.ajax({
+					type: 'POST',
+					url:apiURL,
+					data: {
+						"action": "uploadreceipt",
+						"apikey": apikey,
+						"receipt_date": expensedate,
+						"payment_type": expensetype,
+						"payment_method": expensepaymentmethod,
+						"amount": expenseamount,
+						"base64encode": base64encode
+					},
+					dataType: "json",
+				}).done(function(response){
+					localStorage.setItem("receipt_"+i+"_status", "9");
+					localStorage.removeItem("receipt_"+i+"_expensedate");
+					localStorage.removeItem("receipt_"+i+"_expensetype");
+					localStorage.removeItem("receipt_"+i+"_expensepaymentmethod");
+					localStorage.removeItem("receipt_"+i+"_expenseamount");
+					localStorage.removeItem("receipt_"+i+"_base64encode");
+					showToast("Succesfully uploaded receipt data");
+				}).fail(function(response){
+					showToast("Unable to upload receipt information, will try again later");
+					localStorage.setItem("receipt_"+i+"_status", "0");
+				});
+			}
+		}
+	}
+}
 
 
 function onCameraSuccess(imageURI) {
