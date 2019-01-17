@@ -16,7 +16,7 @@ $(document).ready(function(){
 		}
 		
 		//every 2 minutes try to update
-		if(refreshcount%(6*2)==0 && loggedIn && isInternet){
+		if(refreshcount%(6*2/12)==0 && loggedIn && isInternet){
 			updateSchedule(-1, '', false);
 			
 			receiptUpload();
@@ -209,6 +209,7 @@ $(document).on('click',"#loginBtn",function(e){
 					localStorage.setItem("email", response.data.email);
 					localStorage.setItem("workorders", "");
 					localStorage.setItem("numnotes", 0);
+					localStorage.setItem("numreceipts", 0);
 					
 					afterLoginCheck();
 					
@@ -316,6 +317,7 @@ function tryUploads(callback){
 
 function updateSchedule(workorderidtoshow, workordernotes, shownotification){
 	if(isInternet){
+		//run the try uploads function, and pass the actual check data as a callback function so that it can be run when all of the uploads have completed.  Excludes receipt uploads as those could be large
 		tryUploads(function(){
 			//update records, but only store it for now, let another function actually spit it out
 			data = "action=getmyworkorders&apikey="+apikey;
@@ -598,9 +600,6 @@ $(document).on('click', '.submitnotes', function(){
 	
 });
 
-
-
-
 /* File handling functions */
 $(document).on('click', '.downloadworkorderpdf', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
@@ -847,7 +846,7 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 	var expensepaymentmethod = $('#expensepaymentmethod').val();
 	var expenseamount = $('#expenseamount').val();
 	var base64encode = $('#receiptphoto').attr('src');
-	
+	console.log(expensedate);
 	var goodform = true;
 	var errors = [];
 	
@@ -887,6 +886,8 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 		$('#submitexpensesbutton').addClass('ui-state-disabled');
 		$('#submitexpensesbutton2').addClass('ui-state-disabled');
 		
+		numreceipts = parseInt(localStorage.getItem("numreceipts"));
+		
 		// store details locally, then call check script
 		localStorage.setItem("receipt_"+numreceipts+"_expensedate", expensedate);
 		localStorage.setItem("receipt_"+numreceipts+"_expensetype", expensetype);
@@ -895,6 +896,7 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 		localStorage.setItem("receipt_"+numreceipts+"_base64encode", base64encode);
 		localStorage.setItem("receipt_"+numreceipts+"_status", "0");
 		numreceipts++;
+		localStorage.setItem("numreceipts", numreceipts);
 		if(isInternet){
 			receiptUpload();
 		}else{
@@ -918,45 +920,6 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 		$('#expenseformresult').html("Succesfully uploaded expense claim");
 		$('#expenseformresult').slideDown();
 		
-		/*
-		$.ajax({
-			type: 'POST',
-			url:apiURL,
-			data: {
-				"action": "uploadreceipt",
-				"apikey": apikey,
-				"receipt_date": expensedate,
-				"payment_type": expensetype,
-				"payment_method": expensepaymentmethod,
-				"amount": expenseamount,
-				"base64encode": base64encode
-			},
-			dataType: "json",
-		}).done(function(response){
-			
-			$('#expensedate').val('');
-			$('#expensetype').val('');
-			$('#expensepaymentmethod').val('');
-			$('#expenseamount').val('');
-			$('#expensepaymentmethod').trigger('change');
-			$('#expensetype').trigger('change');
-			$('#receiptphoto').attr('src', '');
-			$('#receiptphotodiv').hide();
-			
-			$('#expensesspinnerdiv').hide();
-			$('#submitexpensesbutton').removeClass('ui-state-disabled');
-			$('#submitexpensesbutton2').removeClass('ui-state-disabled');
-			
-			$('#expenseformresult').addClass('alert-success');
-			$('#expenseformresult').html("Succesfully uploaded expense claim");
-			$('#expenseformresult').slideDown();
-		}).fail(function(error){
-			$('#expensesspinnerdiv').hide();
-			$('#expenseformresult').addClass('alert-fail');
-			$('#expenseformresult').html("Unable to submit expense: <br>"+JSON.stringify(error));
-			$('#expenseformresult').slideDown();
-		});
-		*/
 	}else{
 		$('#expenseformresult').addClass('alert-danger');
 		$('#expenseformresult').html(errors.join("<br>"));
@@ -981,44 +944,59 @@ $(document).on('click', '#getphotobutton', function(e){
 		}); 
 });
 
-function receiptUpload(){
-	checkInternet();
-	if(isInternet){
-		for(i = 0;i<numreceipts;i++){
-			if(localStorage.getItem("receipt_"+i+"_status")=='0'){
-				localStorage.setItem("receipt_"+i+"_status", "5");
-				//not uploaded yet, so lets try
-				expensedate = localStorage.getItem("receipt_"+i+"_expensedate");
-				expensetype = localStorage.getItem("receipt_"+i+"_expensetype");
-				expensepaymentmethod = localStorage.getItem("receipt_"+i+"_expensepaymentmethod");
-				expenseamount = localStorage.getItem("receipt_"+i+"_expenseamount");
-				base64encode = localStorage.getItem("receipt_"+i+"_base64encode");
-				$.ajax({
+function doReceiptUpload(j){
+	numreceipts = parseInt(localStorage.getItem("numreceipts"));
+	if (j >= numreceipts){
+		return;
+	}
+	
+	if(localStorage.getItem("receipt_"+j+"_status") == '0'){
+		localStorage.setItem("receipt_"+j+"_status", 5);
+		console.log(localStorage.getItem("receipt_"+j+"_expensedate"));
+		return $.ajax({
 					type: 'POST',
 					url:apiURL,
+					dataType: "json",
 					data: {
 						"action": "uploadreceipt",
 						"apikey": apikey,
-						"receipt_date": expensedate,
-						"payment_type": expensetype,
-						"payment_method": expensepaymentmethod,
-						"amount": expenseamount,
-						"base64encode": base64encode
-					},
-					dataType: "json",
+						"receipt_date": localStorage.getItem("receipt_"+j+"_expensedate"),
+						"payment_type": localStorage.getItem("receipt_"+j+"_expensetype"),
+						"payment_method": localStorage.getItem("receipt_"+j+"_expensepaymentmethod"),
+						"amount": localStorage.getItem("receipt_"+j+"_expenseamount"),
+						"base64encode": localStorage.getItem("receipt_"+j+"_base64encode")
+					}
 				}).done(function(response){
-					localStorage.setItem("receipt_"+i+"_status", "9");
-					localStorage.removeItem("receipt_"+i+"_expensedate");
-					localStorage.removeItem("receipt_"+i+"_expensetype");
-					localStorage.removeItem("receipt_"+i+"_expensepaymentmethod");
-					localStorage.removeItem("receipt_"+i+"_expenseamount");
-					localStorage.removeItem("receipt_"+i+"_base64encode");
-					showToast("Succesfully uploaded receipt data");
+					if(response.success){
+						localStorage.setItem("receipt_"+j+"_status", "9");
+						localStorage.removeItem("receipt_"+j+"_expensedate");
+						localStorage.removeItem("receipt_"+j+"_expensetype");
+						localStorage.removeItem("receipt_"+j+"_expensepaymentmethod");
+						localStorage.removeItem("receipt_"+j+"_expenseamount");
+						localStorage.removeItem("receipt_"+j+"_base64encode");
+						showToast("Succesfully uploaded receipt data");
+					}else{
+						localStorage.setItem("receipt_"+j+"_status", "0");
+					}
 				}).fail(function(response){
 					showToast("Unable to upload receipt information, will try again later");
-					localStorage.setItem("receipt_"+i+"_status", "0");
-				});
-			}
+					localStorage.setItem("receipt_"+j+"_status", "0");
+				}).then(function () {
+			// return the next promise, or not if done
+			doReceiptUpload(j + 1);
+		});;
+		
+	}else{
+		doReceiptUpload(j + 1);
+	}
+}
+
+function receiptUpload(){
+	checkInternet();
+	if(isInternet){
+		var numreceipts = parseInt(localStorage.getItem("numreceipts"));
+		if(numreceipts>0){
+			doReceiptUpload(0);
 		}
 	}
 }
@@ -1097,9 +1075,6 @@ function resetAllFields(){
 		localStorage.clear();
 	}, 200); //wait 200ms before clearing the cache
 }
-
-
-
 
 //List files code and put into a div with id filelist
 function updateFileList(){
