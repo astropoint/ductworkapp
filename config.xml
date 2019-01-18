@@ -20,7 +20,7 @@
     <plugin name="cordova-plugin-whitelist" source="npm" spec="~1.2.1" />
     <plugin name="cordova-plugin-file" source="npm" spec="~4.1.1" />
     <plugin name="cordova-plugin-file-transfer" source="npm" spec="~1.5.0" />
-    <plugin name="cordova-plugin-file-opener2" source="npm" />
+    <plugin name="cordova-plugin-file-opener2" source="npm" spec="^2.1.0">
     <plugin name='cordova-plugin-app-version' source='npm' />
     <plugin name="cordova-plugin-x-toast" source="npm" />
     <platform name="android">
