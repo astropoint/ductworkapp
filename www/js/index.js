@@ -284,9 +284,6 @@ function makeNotesCall(j){
 			}
 		}).fail(function(){
 			localStorage.setItem("note_"+j+"_status", 0);
-			if(j==numnotes-1){
-				updatingnotes = false;
-			}
 		}).then(function () {
 			// return the next promise, or not if done
 			makeNotesCall(j + 1);
@@ -296,14 +293,174 @@ function makeNotesCall(j){
 	}
 }
 
+function makeArrivalsCall(num){
+	workorderid = workorderlistarray[num];
+	if (num >= workorderlistarray.length){
+		updatingarrival = false;
+		return;
+	}
+	
+	
+	if(isInternet){
+		//
+		//console.log(thisworkorder);
+		if(localStorage.getItem("arrival_"+workorderid+"_status")!==null){
+			//has been set, so check it is equal 1
+			if(localStorage.getItem("arrival_"+workorderid+"_status")==1){
+				//equals one, so ready
+				
+				localStorage.setItem("arrival_"+workorderid+"_status", 5);
+				
+				$.ajax({
+					type: 'POST',
+					url:apiURL,
+					data: {
+						"action": "setarrivaltime",
+						"apikey": apikey,
+						"workorderid": workorderid,
+						"date": localStorage.getItem("arrival_"+workorderid+"_date"),
+						"gpslon": localStorage.getItem("arrival_"+workorderid+"_gpslon"),
+						"gpslat": localStorage.getItem("arrival_"+workorderid+"_gpslat")
+					},
+					dataType: "json",
+				}).done(function(response){
+					
+					if(response.success){
+						if(response.data.affected_rows==-1){
+							localStorage.setItem("arrival_"+workorderid+"_status", 1);
+							showToast("Unable to update: "+response.error);
+						}else{
+							localStorage.setItem("arrival_"+workorderid+"_status", 9);
+							localStorage.removeItem("arrival_"+j+"_date");
+							localStorage.removeItem("arrival_"+j+"_gpslon");
+							localStorage.removeItem("arrival_"+j+"_gpslat");
+							localStorage.removeItem("arrival_"+j+"_notes");
+							$('#apiresponse-'+workorderid).addClass('alert-success');
+							$('#apiresponse-'+workorderid).removeClass('alert-danger');
+							$('#apiresponse-'+workorderid).show();
+							$('#apiresponse-'+workorderid).html("Succesfully set arrival time");
+						}
+						
+					}else{
+						localStorage.setItem("arrival_"+workorderid+"_status", 1);
+						showToast("Unable to update: "+response.message);
+					}
+					
+				}).fail(function(){
+					localStorage.setItem("arrival_"+workorderid+"_status", 1);
+				}).then(function () {
+					// return the next promise, or not if done
+					makeArrivalsCall(num + 1);
+				});
+			}else{
+				makeArrivalsCall(num + 1);
+			}
+		}else{
+			makeArrivalsCall(num+1);
+		}
+		
+	}else{
+		//no internet, why bother continuing
+		updatingarrival = false;
+	}
+}
+
+function makeDeparturesCall(num){
+	workorderid = workorderlistarray[num];
+	if (num >= workorderlistarray.length){
+		updatingdeparture = false;
+		return;
+	}
+	
+	
+	if(isInternet){
+		//
+		//console.log(thisworkorder);
+		if(localStorage.getItem("departure_"+workorderid+"_status")!==null){
+			//has been set, so check it is equal 1
+			if(localStorage.getItem("departure_"+workorderid+"_status")==1){
+				//equals one, so ready
+				var thisworkorder = JSON.parse(localStorage.getItem('workorder-'+workorderid));
+				localStorage.setItem("departure_"+workorderid+"_status", 5);
+				
+				$.ajax({
+					type: 'POST',
+					url:apiURL,
+					data: {
+						"action": "setleavetime",
+						"apikey": apikey,
+						"workorderid": workorderid,
+						"date": localStorage.getItem("departure_"+workorderid+"_date"),
+						"gpslon": localStorage.getItem("departure_"+workorderid+"_gpslon"),
+						"gpslat": localStorage.getItem("departure_"+workorderid+"_gpslat"),
+						"notes": localStorage.getItem("departure_"+workorderid+"_notes"),
+					},
+					dataType: "json",
+				}).done(function(response){
+					
+					if(response.success){
+						if(response.data.affected_rows==-1){
+							localStorage.setItem("departure_"+workorderid+"_status", 1);
+							showToast("Unable to update: "+response.error);
+						}else{
+							localStorage.setItem("departure_"+workorderid+"_status", 9);
+							localStorage.removeItem("departure_"+j+"_date");
+							localStorage.removeItem("departure_"+j+"_gpslon");
+							localStorage.removeItem("departure_"+j+"_gpslat");
+							localStorage.removeItem("departure_"+j+"_notes");
+							$('#apiresponse-'+workorderid).addClass('alert-success');
+							$('#apiresponse-'+workorderid).removeClass('alert-danger');
+							$('#apiresponse-'+workorderid).show();
+							$('#apiresponse-'+workorderid).html("Succesfully set departure time");
+						}
+						
+					}else{
+						localStorage.setItem("departure_"+workorderid+"_status", 1);
+						showToast("Unable to update: "+response.message);
+					}
+				}).fail(function(){
+					localStorage.setItem("departure_"+workorderid+"_status", 1);
+				}).then(function () {
+					// return the next promise, or not if done
+					makeDeparturesCall(num + 1);
+				});
+				
+			}else{
+				makeDeparturesCall(num+1);
+			}
+		}else{
+			makeDeparturesCall(num+1);
+		}
+		
+	}else{
+		updatingdeparture = false;
+	}
+}
+
 var updatingnotes = false;
 var updatingarrival = false;
 var updatingdeparture = false;
+var workorderlistarray;
 function tryUploads(callback){
 	numnotes = localStorage.getItem("numnotes");
 	if(numnotes > 0){
 		updatingnotes = true;
 		makeNotesCall(0);
+	}
+	
+	
+	workorderstring = localStorage.getItem("workorders");
+	if(workorderstring!=''){
+		workorderlistarray = workorderstring.split(",");
+		if(workorderlistarray.length>0){
+			updatingdeparture = true;
+			makeDeparturesCall(0);
+		}
+		
+		if(workorderlistarray.length>0){
+			updatingarrival = true;
+			makeArrivalsCall(0);
+		}
 	}
 	
 	var tryingtoupdate = setInterval(function(){
@@ -316,6 +473,7 @@ function tryUploads(callback){
 }
 
 function updateSchedule(workorderidtoshow, workordernotes, shownotification){
+	checkInternet();
 	if(isInternet){
 		//run the try uploads function, and pass the actual check data as a callback function so that it can be run when all of the uploads have completed.  Excludes receipt uploads as those could be large
 		tryUploads(function(){
@@ -430,7 +588,12 @@ function refreshSchedulePage(workorderidwithnote, note, shownotification){
 			}
 			output += "' id='departbtn-"+workorder.id+"'>Depart</button>";
 			output += "<div class='row'>";
-			output += "<div class='col-sm-6 col-12'><textarea class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'></textarea></div>";
+			var oldnotes = "";
+			if($("#engineernotes-"+workorder.id).length){
+				oldnotes = $("#engineernotes-"+workorder.id).val();
+			}
+			
+			output += "<div class='col-sm-6 col-12'><textarea class='engineernotes' id='engineernotes-"+workorder.id+"' placeholder='Add Notes'>"+oldnotes+"</textarea></div>";
 			output += "<div class='col-sm-6 col-12 pull-right'><button class='submitnotes' id='submitnotes-"+workorder.id+"'>Submit Engineer Notes</button></div>";
 			output += "</div>";
 			output += "<div class='notesubmitted alert alert-success'";
@@ -495,87 +658,33 @@ $(document).on('click', '.arrivebutton', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	setLatLon();
 	
-	if(isInternet){
-			
-		$.ajax({
-			type: 'POST',
-			url:apiURL,
-			data: {
-				"action": "setarrivaltime",
-				"apikey": apikey,
-				"workorderid": workorderid,
-				"gpslon": curlon,
-				"gpslat": curlat
-			},
-			dataType: "json",
-		}).done(function(response){
-			
-			if(response.success){
-				if(response.data.affected_rows==-1){
-					$('#apiresponse-'+workorderid).removeClass('alert-success');
-					$('#apiresponse-'+workorderid).addClass('alert-danger');
-					$('#apiresponse-'+workorderid).show();
-					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
-				}else{
-					updateSchedule(workorderid, "Succesfully set arrival time", false);
-				}
-			}else{
-				$('#apiresponse-'+workorderid).removeClass('alert-success');
-				$('#apiresponse-'+workorderid).addClass('alert-danger');
-				$('#apiresponse-'+workorderid).show();
-				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
-			}
-		});
-	}else{
-		$('#apiresponse-'+workorderid).removeClass('alert-success');
-		$('#apiresponse-'+workorderid).addClass('alert-danger');
-		$('#apiresponse-'+workorderid).show();
-		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
-	}
+	localStorage.setItem("arrival_"+workorderid+"_date", new Date());
+	localStorage.setItem("arrival_"+workorderid+"_gpslon", curlon);
+	localStorage.setItem("arrival_"+workorderid+"_gpslat", curlat);
+	localStorage.setItem("arrival_"+workorderid+"_status", 1);
+	
+	var thisworkorder = JSON.parse(localStorage.getItem('workorder-'+workorderid));
+	thisworkorder.site_arrive = "Pending Upload";
+	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
+	
+	refreshSchedulePage(workorderid, "Saved", true); 
 });
 
 $(document).on('click', '.departbutton', function(){
 	var workorderid = $(this).attr('id').split("-")[1];
 	setLatLon();
 	
-	if(isInternet){
-			
-		$.ajax({
-			type: 'POST',
-			url:apiURL,
-			data: {
-				"action": "setleavetime",
-				"apikey": apikey,
-				"workorderid": workorderid,
-				"gpslon": curlon,
-				"gpslat": curlat,
-				"notes": $('#engineernotes-'+workorderid).val()
-			},
-			dataType: "json",
-		}).done(function(response){
-			
-			if(response.success){
-				if(response.data.affected_rows==-1){
-					$('#apiresponse-'+workorderid).removeClass('alert-success');
-					$('#apiresponse-'+workorderid).addClass('alert-danger');
-					$('#apiresponse-'+workorderid).show();
-					$('#apiresponse-'+workorderid).html("Unable to update: "+response.error);
-				}else{
-					updateSchedule(workorderid, "Successfully set departure time", false);
-				}
-			}else{
-				$('#apiresponse-'+workorderid).removeClass('alert-success');
-				$('#apiresponse-'+workorderid).addClass('alert-danger');
-				$('#apiresponse-'+workorderid).show();
-				$('#apiresponse-'+workorderid).html("Unable to update: "+response.message);
-			}
-		});
-	}else{
-		$('#apiresponse-'+workorderid).removeClass('alert-success');
-		$('#apiresponse-'+workorderid).addClass('alert-danger');
-		$('#apiresponse-'+workorderid).show();
-		$('#apiresponse-'+workorderid).html("Unable to connect to API, please check your internet connection");
-	}
+	localStorage.setItem("departure_"+workorderid+"_date", new Date());
+	localStorage.setItem("departure_"+workorderid+"_gpslon", curlon);
+	localStorage.setItem("departure_"+workorderid+"_gpslat", curlat);
+	localStorage.setItem("departure_"+workorderid+"_notes", $('#engineernotes-'+workorderid).val());
+	localStorage.setItem("departure_"+workorderid+"_status", 1);
+	
+	var thisworkorder = JSON.parse(localStorage.getItem('workorder-'+workorderid));
+	thisworkorder.site_leave = "Pending Upload";
+	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
+	
+	refreshSchedulePage(workorderid, "Saved", true); 
 });
 
 $(document).on('click', '.submitnotes', function(){
@@ -584,6 +693,7 @@ $(document).on('click', '.submitnotes', function(){
 	
 	localStorage.setItem('note_'+numnotes+"_workorderid", workorderid);
 	localStorage.setItem('note_'+numnotes+"_note", $('#engineernotes-'+workorderid).val());
+	$('#engineernotes-'+workorderid).val('');
 	localStorage.setItem('note_'+numnotes+"_status", "0");
 	numnotes++;
 	localStorage.setItem("numnotes", numnotes);
