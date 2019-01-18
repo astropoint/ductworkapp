@@ -16,7 +16,7 @@ $(document).ready(function(){
 		}
 		
 		//every 2 minutes try to update
-		if(refreshcount%(6*2/12)==0 && loggedIn && isInternet){
+		if(refreshcount%(6*2)==0 && loggedIn && isInternet){
 			updateSchedule(-1, '', false);
 			
 			receiptUpload();
