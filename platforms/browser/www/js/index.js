@@ -1184,22 +1184,21 @@ function updatePendingPage(){
 	$('#pendingarrivals').html(arrivalshtml);
 	
 	var noteshtml = "";
-	$.each(workorderlist, function(key, workorderid){
-		if(localStorage.getItem("note_"+workorderid+"_status")!==null){
-			var thisstatus = localStorage.getItem("note_"+workorderid+"_status");
-				if(thisstatus == '0' || thisstatus == '5'){
-				noteshtml += "<h4>Notes for workorder "+workorderid+"</h4>";
-				noteshtml += "<div class='detailsblock'>Note: "+localStorage.getItem("note_"+workorderid+"_note");
-				noteshtml += "<br>Status: ";
-				switch(thisstatus){
-					case '0': noteshtml += "Pending"; break;
-					case '5': noteshtml += "Uploading"; break;
-					default:
-				}
-				noteshtml += "</div>";
+	var numnotes = parseInt(localStorage.getItem("numnotes"));
+	for(var k = 0;k<numnotes;k++){
+		var thisstatus = localStorage.getItem("note_"+k+"_status");
+			if(thisstatus == '0' || thisstatus == '5'){
+			noteshtml += "<h4>Notes for workorder "+k+"</h4>";
+			noteshtml += "<div class='detailsblock'>Note: "+localStorage.getItem("note_"+k+"_note");
+			noteshtml += "<br>Status: ";
+			switch(thisstatus){
+				case '0': noteshtml += "Pending"; break;
+				case '5': noteshtml += "Uploading"; break;
+				default:
 			}
+			noteshtml += "</div>";
 		}
-	});
+	}
 	if(noteshtml==''){
 		noteshtml = "No pending arrivals";
 	}
