@@ -88,6 +88,8 @@
 				</div>
   
 				<p id='version'>Version: <span class='versionnumber'></span></p>
+				
+				<p id='pendingbutton'><a href='#pendingUploads'>Pending details</a></p>
 			</div>
 		</div>
 	</div>
@@ -184,6 +186,50 @@
 			
 			<div id='expenseformresult' style='display:none' class='alert'></div>
 				
+		</div>
+	</div>
+
+	<div data-role="page" class='mypage' id="pendingUploads">
+		<div data-role="header">
+			<title>Pending</title>
+		</div>
+		
+		<div class='row' id="topnav">
+			<div class='col-3'><a id="Home" href='#userHome'>Menu</a></div>
+			<div class="Username col-6">
+				<a class="full_name"></a>
+			</div>
+			<div class='col-3'><a id="refr" class="refreshschedule"><i class='fa fa-refresh'></i></a></div>
+
+		</div>
+
+		<div role="main" class="ui-content">
+
+			<div class='pagebody'>
+				<h2>Details waiting for an internet connection to be uploaded</h2>
+				
+				<div class='pendingblock'>
+					<h3>Pending Arrivals</h3>
+					<div id='pendingarrivals'></div>
+				</div>
+
+				<div class='pendingblock'>
+					<h3>Pending Departures</h3>
+					<div id='pendingdepartures'></div>
+				</div>
+
+				<div class='pendingblock'>
+					<h3>Pending Notes</h3>
+					<div id='pendingnotes'></div>
+				</div>
+
+				<div class='pendingblock'>
+					<h3>Pending Receipts</h3>
+					<div id='pendingreceipts'></div>
+				</div>
+				
+				
+			</div>
 		</div>
 	</div>
 

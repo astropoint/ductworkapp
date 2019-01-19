@@ -247,6 +247,7 @@ function afterLoginCheck(){
 	
 	setTimeout(function(){
 		populateExpensesForm(false);
+		updatePendingPage();
 	}, 500);
 }
 
@@ -286,6 +287,7 @@ function makeNotesCall(j){
 			if(j==numnotes-1){
 				updatingnotes = false;
 			}
+			updatePendingPage();
 		}).fail(function(){
 			localStorage.setItem("note_"+j+"_status", 0);
 		}).then(function () {
@@ -349,7 +351,7 @@ function makeArrivalsCall(num){
 						localStorage.setItem("arrival_"+workorderid+"_status", 1);
 						showToast("Unable to update: "+response.message);
 					}
-					
+					updatePendingPage();
 				}).fail(function(){
 					localStorage.setItem("arrival_"+workorderid+"_status", 1);
 				}).then(function () {
@@ -422,6 +424,7 @@ function makeDeparturesCall(num){
 						localStorage.setItem("departure_"+workorderid+"_status", 1);
 						showToast("Unable to update: "+response.message);
 					}
+					updatePendingPage();
 				}).fail(function(){
 					localStorage.setItem("departure_"+workorderid+"_status", 1);
 				}).then(function () {
@@ -687,6 +690,7 @@ $(document).on('click', '.departbutton', function(){
 	var thisworkorder = JSON.parse(localStorage.getItem('workorder-'+workorderid));
 	thisworkorder.site_leave = "Pending Upload";
 	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
+	$('#engineernotes-'+workorderid).val('');
 	
 	refreshSchedulePage(workorderid, "Saved", true); 
 });
@@ -1089,6 +1093,7 @@ function doReceiptUpload(j){
 					}else{
 						localStorage.setItem("receipt_"+j+"_status", "0");
 					}
+					updatePendingPage();
 				}).fail(function(response){
 					showToast("Unable to upload receipt information, will try again later");
 					localStorage.setItem("receipt_"+j+"_status", "0");
@@ -1112,6 +1117,94 @@ function receiptUpload(){
 	}
 }
 
+function updatePendingPage(){
+	var numreceipts = parseInt(localStorage.getItem("numreceipts"));
+	var receiptshtml = "";
+	for(var k = 0;k<numreceipts;k++){
+		var thisstatus = localStorage.getItem("receipt_"+k+"_status");
+		if(thisstatus == '0' || thisstatus == '5'){
+			receiptshtml += "<h4>Receipt "+k+"</h4>";
+			receiptshtml += "<div class='detailsblock'>Date: "+localStorage.getItem("receipt_"+k+"_expensedate");
+			receiptshtml += "<br>Status: ";
+			switch(thisstatus){
+				case '0': receiptshtml += "Pending"; break;
+				case '5': receiptshtml += "Uploading"; break;
+				default:
+			}
+			receiptshtml += "</div>";
+		}
+	}
+	if(receiptshtml==''){
+		receiptshtml = "No pending receipts";
+	}
+	$('#pendingreceipts').html(receiptshtml);
+	
+	var departureshtml = "";
+	$.each(workorderlist, function(key, workorderid){
+		if(localStorage.getItem("departure_"+workorderid+"_status")!==null){
+			var thisstatus = localStorage.getItem("departure_"+workorderid+"_status");
+				if(thisstatus == '1' || thisstatus == '5'){
+				departureshtml += "<h4>Departure for workorder "+workorderid+"</h4>";
+				departureshtml += "<div class='detailsblock'>Date: "+localStorage.getItem("departure_"+workorderid+"_date");
+				departureshtml += "<br>Status: ";
+				switch(thisstatus){
+					case '1': departureshtml += "Pending"; break;
+					case '5': departureshtml += "Uploading"; break;
+					default:
+				}
+				departureshtml += "</div>";
+			}
+		}
+	});
+	if(departureshtml==''){
+		departureshtml = "No pending departures";
+	}
+	$('#pendingdepartures').html(departureshtml);
+	
+	var arrivalshtml = "";
+	$.each(workorderlist, function(key, workorderid){
+		if(localStorage.getItem("arrival_"+workorderid+"_status")!==null){
+			var thisstatus = localStorage.getItem("arrival_"+workorderid+"_status");
+				if(thisstatus == '1' || thisstatus == '5'){
+				arrivalshtml += "<h4>Arrivals for workorder "+workorderid+"</h4>";
+				arrivalshtml += "<div class='detailsblock'>Date: "+localStorage.getItem("arrival_"+workorderid+"_date");
+				arrivalshtml += "<br>Status: ";
+				switch(thisstatus){
+					case '1': arrivalshtml += "Pending"; break;
+					case '5': arrivalshtml += "Uploading"; break;
+					default:
+				}
+				arrivalshtml += "</div>";
+			}
+		}
+	});
+	if(arrivalshtml==''){
+		arrivalshtml = "No pending arrivals";
+	}
+	$('#pendingarrivals').html(arrivalshtml);
+	
+	var noteshtml = "";
+	$.each(workorderlist, function(key, workorderid){
+		if(localStorage.getItem("note_"+workorderid+"_status")!==null){
+			var thisstatus = localStorage.getItem("note_"+workorderid+"_status");
+				if(thisstatus == '0' || thisstatus == '5'){
+				noteshtml += "<h4>Notes for workorder "+workorderid+"</h4>";
+				noteshtml += "<div class='detailsblock'>Note: "+localStorage.getItem("note_"+workorderid+"_note");
+				noteshtml += "<br>Status: ";
+				switch(thisstatus){
+					case '0': noteshtml += "Pending"; break;
+					case '5': noteshtml += "Uploading"; break;
+					default:
+				}
+				noteshtml += "</div>";
+			}
+		}
+	});
+	if(noteshtml==''){
+		noteshtml = "No pending arrivals";
+	}
+	$('#pendingnotes').html(noteshtml);
+}
 
 function onCameraSuccess(imageURI) {
 	var image = document.getElementById('myImage');
@@ -1152,6 +1245,10 @@ $(document).on( "pagecontainerchange", function( event, ui ) {
 		case "expensesPage":
 			checkIfLoggedIn(true, 'expensesPage');
 			populateExpensesForm(false);
+			break;
+		case "pendingUploads":
+			checkIfLoggedIn(true, 'pendingUploads');
+			updatePendingPage();
 			break;
 		default:
 			console.log("NO PAGE INIT FUNCTION")

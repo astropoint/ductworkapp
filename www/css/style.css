@@ -99,6 +99,12 @@ form {
 	clear:both;
 }
 
+#pendingbutton{
+	text-align:center;
+	padding-top:10px;
+	clear:both;
+}
+
 #topnav {
 	overflow: hidden;
 	background-color: #333333;
