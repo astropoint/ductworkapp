@@ -1047,7 +1047,7 @@ $(document).on('click', '#getphotobutton', function(e){
 			$('#receiptphotodiv').show();
 		}, function(message){
 			//on fail
-			alert('Get photo failed because: ' + message);
+			showToast('Get photo failed because: ' + message);
 		}, 
 		{ 
 			quality: 50, 
