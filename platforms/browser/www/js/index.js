@@ -1123,8 +1123,9 @@ function updatePendingPage(){
 	for(var k = 0;k<numreceipts;k++){
 		var thisstatus = localStorage.getItem("receipt_"+k+"_status");
 		if(thisstatus == '0' || thisstatus == '5'){
-			receiptshtml += "<h4>Receipt "+k+"</h4>";
+			receiptshtml += "<h4>Receipt "+(k+1)+"</h4>";
 			receiptshtml += "<div class='detailsblock'>Date: "+localStorage.getItem("receipt_"+k+"_expensedate");
+			receiptshtml += "<br>Amount: &pound;"+localStorage.getItem("receipt_"+k+"_expenseamount");
 			receiptshtml += "<br>Status: ";
 			switch(thisstatus){
 				case '0': receiptshtml += "Pending"; break;
@@ -1188,7 +1189,7 @@ function updatePendingPage(){
 	for(var k = 0;k<numnotes;k++){
 		var thisstatus = localStorage.getItem("note_"+k+"_status");
 			if(thisstatus == '0' || thisstatus == '5'){
-			noteshtml += "<h4>Notes for workorder "+k+"</h4>";
+			noteshtml += "<h4>Note for workorder "+localStorage.getItem("note_"+k+"_workorderid")+"</h4>";
 			noteshtml += "<div class='detailsblock'>Note: "+localStorage.getItem("note_"+k+"_note");
 			noteshtml += "<br>Status: ";
 			switch(thisstatus){
