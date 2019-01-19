@@ -243,7 +243,8 @@ function afterLoginCheck(){
 	}
 	
 	$('.full_name').html(full_name);
-		
+	
+	populateExpensesForm(false);
 }
 
 function makeNotesCall(j){
@@ -881,7 +882,6 @@ function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(e
 /* Expenses page */
 scheduleformenabled = false;
 function populateExpensesForm(shownotification){
-	enableform = true;
 	
 	if(isInternet){
 	
