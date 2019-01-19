@@ -932,8 +932,6 @@ function populateExpensesForm(shownotification){
 			}
 		});
 		
-	}else{
-		showToast("Unable to connect to the API.  You need to be connected to the internet in order to submit expense claims");
 	}
 }
 
