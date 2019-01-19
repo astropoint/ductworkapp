@@ -230,7 +230,8 @@ $(document).on('click',"#loginBtn",function(e){
 
 function afterLoginCheck(){
 	
-		
+	checkInternet();
+	
 	apikey = localStorage.getItem('apikey');
 	full_name = localStorage.getItem('full_name');
 	userid = localStorage.getItem('userid');
@@ -244,7 +245,9 @@ function afterLoginCheck(){
 	
 	$('.full_name').html(full_name);
 	
-	populateExpensesForm(false);
+	setTimeout(function(){
+		populateExpensesForm(false);
+	}, 500);
 }
 
 function makeNotesCall(j){

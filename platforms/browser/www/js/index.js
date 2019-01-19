@@ -230,7 +230,8 @@ $(document).on('click',"#loginBtn",function(e){
 
 function afterLoginCheck(){
 	
-		
+	checkInternet();
+	
 	apikey = localStorage.getItem('apikey');
 	full_name = localStorage.getItem('full_name');
 	userid = localStorage.getItem('userid');
@@ -243,7 +244,10 @@ function afterLoginCheck(){
 	}
 	
 	$('.full_name').html(full_name);
-		
+	
+	setTimeout(function(){
+		populateExpensesForm(false);
+	}, 500);
 }
 
 function makeNotesCall(j){
@@ -881,7 +885,6 @@ function removeFileErrorHandler3(error){alert("Error code RM3:"+JSON.stringify(e
 /* Expenses page */
 scheduleformenabled = false;
 function populateExpensesForm(shownotification){
-	enableform = true;
 	
 	if(isInternet){
 	
