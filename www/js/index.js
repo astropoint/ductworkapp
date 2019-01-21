@@ -348,8 +348,13 @@ function makeArrivalsCall(num){
 						}
 						
 					}else{
-						localStorage.setItem("arrival_"+workorderid+"_status", 1);
-						showToast("Unable to update: "+response.message);
+						if(response.errorcode == '1'){
+							localStorage.setItem("arrival_"+workorderid+"_status", 9);
+							showToast("The workorder has already been marked as arrived");
+						}else{
+							localStorage.setItem("arrival_"+workorderid+"_status", 1);
+							showToast("Unable to update: "+response.message);
+						}
 					}
 					updatePendingPage();
 				}).fail(function(){
@@ -421,8 +426,13 @@ function makeDeparturesCall(num){
 						}
 						
 					}else{
-						localStorage.setItem("departure_"+workorderid+"_status", 1);
-						showToast("Unable to update: "+response.message);
+						if(response.errorcode == '1'){
+							localStorage.setItem("departure_"+workorderid+"_status", 9);
+							showToast("The workorder has already been marked as arrived");
+						}else{
+							localStorage.setItem("departure_"+workorderid+"_status", 1);
+							showToast("Unable to update: "+response.message);
+						}
 					}
 					updatePendingPage();
 				}).fail(function(){
