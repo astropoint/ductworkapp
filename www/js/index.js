@@ -694,7 +694,7 @@ $(document).on('click', '.arrivebutton', function(){
 	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
 	
 	if(isInternet){
-		updateSchedule(workorderid, "Updating arrival time", true); 
+		updateSchedule(workorderid, "Uploaded arrival time", true); 
 	}else{
 		$('#apiresponse-'+workorderid).removeClass('alert-danger');
 		$('#apiresponse-'+workorderid).addClass('alert-success');
@@ -720,7 +720,7 @@ $(document).on('click', '.departbutton', function(){
 	$('#engineernotes-'+workorderid).val('');
 	
 	if(isInternet){
-		updateSchedule(workorderid, "Updating departure time", true); 
+		updateSchedule(workorderid, "Uploaded departure time", true); 
 	}else{
 		$('#apiresponse-'+workorderid).removeClass('alert-danger');
 		$('#apiresponse-'+workorderid).addClass('alert-success');
