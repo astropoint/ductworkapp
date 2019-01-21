@@ -1118,6 +1118,22 @@ function receiptUpload(){
 }
 
 function updatePendingPage(){
+	var content = "";
+	var localStorageSpace = function(){
+        var allStrings = '';
+        for(var key in window.localStorage){
+            if(window.localStorage.hasOwnProperty(key)){
+                allStrings += window.localStorage[key];
+            }
+        }
+        return allStrings ? 3 + ((allStrings.length*16)/(8*1024)) + ' KB' : 'Empty (0 KB)';
+    };
+  content += "<pre>Total size: "+localStorageSpace()+"</pre>";
+	for (var i = 0; i < localStorage.length; i++){
+		content += "<pre>"+localStorage.key(i)+": "+localStorage.getItem(localStorage.key(i))+"</pre>";
+	}
+	$('#allstorage').html(content);
+	
 	var numreceipts = parseInt(localStorage.getItem("numreceipts"));
 	var receiptshtml = "";
 	for(var k = 0;k<numreceipts;k++){
@@ -1130,7 +1146,7 @@ function updatePendingPage(){
 			switch(thisstatus){
 				case '0': receiptshtml += "Pending"; break;
 				case '5': receiptshtml += "Uploading"; break;
-				default:
+				default: break;
 			}
 			receiptshtml += "</div>";
 		}
@@ -1151,7 +1167,7 @@ function updatePendingPage(){
 				switch(thisstatus){
 					case '1': departureshtml += "Pending"; break;
 					case '5': departureshtml += "Uploading"; break;
-					default:
+					default: break;
 				}
 				departureshtml += "</div>";
 			}
@@ -1173,7 +1189,7 @@ function updatePendingPage(){
 				switch(thisstatus){
 					case '1': arrivalshtml += "Pending"; break;
 					case '5': arrivalshtml += "Uploading"; break;
-					default:
+					default: break;
 				}
 				arrivalshtml += "</div>";
 			}
@@ -1195,13 +1211,13 @@ function updatePendingPage(){
 			switch(thisstatus){
 				case '0': noteshtml += "Pending"; break;
 				case '5': noteshtml += "Uploading"; break;
-				default:
+				default: break;
 			}
 			noteshtml += "</div>";
 		}
 	}
 	if(noteshtml==''){
-		noteshtml = "No pending arrivals";
+		noteshtml = "No pending notes";
 	}
 	$('#pendingnotes').html(noteshtml);
 }

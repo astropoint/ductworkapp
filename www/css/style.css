@@ -109,11 +109,15 @@ form {
 	overflow: hidden;
 	background-color: #333333;
 	width: 100%;
-	margin: 1px auto;
+	margin: auto;
 	padding:0;
 	list-style: none;
 	text-align: center;
 	height: 20%;
+}
+
+.ui-header{
+	border-top-width: 0;
 }
 
 #topnav a {
