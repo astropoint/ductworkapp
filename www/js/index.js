@@ -639,12 +639,20 @@ function refreshSchedulePage(workorderidwithnote, note, shownotification){
 }
 
 function sortWorkordersDateAsc(a, b){
+	if(a.start_date == null)
+		return 1;
+	if(b.start_date == null)
+		return -1;
 	adate = Date.parse(a.start_date);
 	bdate = Date.parse(b.start_date);
 	return adate-bdate;
 }
 
 function sortWorkordersDateDesc(a,b){
+	if(a.start_date == null)
+		return -1;
+	if(b.start_date == null)
+		return 1;
 	
 	adate = Date.parse(a.start_date);
 	bdate = Date.parse(b.start_date);
