@@ -300,14 +300,14 @@ function makeNotesCall(j){
 }
 
 function makeArrivalsCall(num){
-	workorderid = workorderlistarray[num];
+	var workorderid = workorderlistarray[num];
 	if (num >= workorderlistarray.length){
 		updatingarrival = false;
 		return;
 	}
 	
 	
-	if(isInternet){
+	if($.isNumeric(workorderid) && isInternet){
 		//
 		//console.log(thisworkorder);
 		if(localStorage.getItem("arrival_"+workorderid+"_status")!==null){
@@ -337,10 +337,10 @@ function makeArrivalsCall(num){
 							showToast("Unable to update: "+response.error);
 						}else{
 							localStorage.setItem("arrival_"+workorderid+"_status", 9);
-							localStorage.removeItem("arrival_"+j+"_date");
-							localStorage.removeItem("arrival_"+j+"_gpslon");
-							localStorage.removeItem("arrival_"+j+"_gpslat");
-							localStorage.removeItem("arrival_"+j+"_notes");
+							localStorage.removeItem("arrival_"+workorderid+"_date");
+							localStorage.removeItem("arrival_"+workorderid+"_gpslon");
+							localStorage.removeItem("arrival_"+workorderid+"_gpslat");
+							localStorage.removeItem("arrival_"+workorderid+"_notes");
 							$('#apiresponse-'+workorderid).addClass('alert-success');
 							$('#apiresponse-'+workorderid).removeClass('alert-danger');
 							$('#apiresponse-'+workorderid).show();
@@ -377,14 +377,14 @@ function makeArrivalsCall(num){
 }
 
 function makeDeparturesCall(num){
-	workorderid = workorderlistarray[num];
+	var workorderid = workorderlistarray[num];
 	if (num >= workorderlistarray.length){
 		updatingdeparture = false;
 		return;
 	}
 	
 	
-	if(isInternet){
+	if($.isNumeric(workorderid) && isInternet){
 		//
 		//console.log(thisworkorder);
 		if(localStorage.getItem("departure_"+workorderid+"_status")!==null){
@@ -415,10 +415,10 @@ function makeDeparturesCall(num){
 							showToast("Unable to update: "+response.error);
 						}else{
 							localStorage.setItem("departure_"+workorderid+"_status", 9);
-							localStorage.removeItem("departure_"+j+"_date");
-							localStorage.removeItem("departure_"+j+"_gpslon");
-							localStorage.removeItem("departure_"+j+"_gpslat");
-							localStorage.removeItem("departure_"+j+"_notes");
+							localStorage.removeItem("departure_"+workorderid+"_date");
+							localStorage.removeItem("departure_"+workorderid+"_gpslon");
+							localStorage.removeItem("departure_"+workorderid+"_gpslat");
+							localStorage.removeItem("departure_"+workorderid+"_notes");
 							$('#apiresponse-'+workorderid).addClass('alert-success');
 							$('#apiresponse-'+workorderid).removeClass('alert-danger');
 							$('#apiresponse-'+workorderid).show();
@@ -672,6 +672,7 @@ $(document).on('click', '.refreshschedule', function(){
 });
 
 $(document).on('click', '.arrivebutton', function(){
+	checkInternet();
 	var workorderid = $(this).attr('id').split("-")[1];
 	setLatLon();
 	
@@ -684,10 +685,18 @@ $(document).on('click', '.arrivebutton', function(){
 	thisworkorder.site_arrive = "Pending Upload";
 	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
 	
-	refreshSchedulePage(workorderid, "Saved", true); 
+	if(isInternet){
+		updateSchedule(workorderid, "Updating arrival time", true); 
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-danger');
+		$('#apiresponse-'+workorderid).addClass('alert-success');
+		$('#apiresponse-'+workorderid).show();
+		$('#apiresponse-'+workorderid).html("No internet connection detected, storing data for later upload");
+	}
 });
 
 $(document).on('click', '.departbutton', function(){
+	checkInternet();
 	var workorderid = $(this).attr('id').split("-")[1];
 	setLatLon();
 	
@@ -702,10 +711,19 @@ $(document).on('click', '.departbutton', function(){
 	localStorage.setItem('workorder-'+workorderid, JSON.stringify(thisworkorder));
 	$('#engineernotes-'+workorderid).val('');
 	
-	refreshSchedulePage(workorderid, "Saved", true); 
+	if(isInternet){
+		updateSchedule(workorderid, "Updating departure time", true); 
+	}else{
+		$('#apiresponse-'+workorderid).removeClass('alert-danger');
+		$('#apiresponse-'+workorderid).addClass('alert-success');
+		$('#apiresponse-'+workorderid).show();
+		$('#engineernotes-'+workorderid).val('');
+		$('#apiresponse-'+workorderid).html("No internet connection detected, storing data for later upload");
+	}
 });
 
 $(document).on('click', '.submitnotes', function(){
+	checkInternet();
 	var workorderid = $(this).attr('id').split("-")[1];
 	numnotes = parseInt(localStorage.getItem("numnotes"));
 	
@@ -716,7 +734,7 @@ $(document).on('click', '.submitnotes', function(){
 	numnotes++;
 	localStorage.setItem("numnotes", numnotes);
 	if(isInternet){
-		updateSchedule(workorderid, "Succesfully set note", false);
+		updateSchedule(workorderid, "Succesfully set note", true);
 	}else{
 		$('#apiresponse-'+workorderid).removeClass('alert-danger');
 		$('#apiresponse-'+workorderid).addClass('alert-success');
@@ -1361,3 +1379,8 @@ function onInitFs(fs) {
 
 }
 
+window.onerror = function(message, url, lineNumber) {  
+  //save error and send to server for example.
+  $('#allerrors').append("<p>Error on line "+lineNumber+":<br>"+message+"</p>");
+  return true;
+}; 
