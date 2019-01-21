@@ -579,7 +579,7 @@ function refreshSchedulePage(workorderidwithnote, note, shownotification){
 		$.each(workorderstodisplay, function(key, workorder){
 			output += "<div id='page-"+key+"' class='workordercard'>";
 			output += "<div class='start_date' id='time-"+workorder.id+"'>"+dateWithoutSeconds(workorder.start_date)+"</div>";
-			output += "<div style='float:right;text-align:right'><button class='btn-default downloadworkorderpdf' id='getpdf-"+workorder.id+"'>Job Sheet</button>";
+			output += "<div style='float:right;text-align:right'><button class='btn-default downloadworkorderpdf' id='getpdf-"+workorder.id+"'>More Details</button>";
 			if(workorder.safety_doc_id!==null && workorder.safety_doc_id!=''){
 				output += "<br><button class='btn-default downloadsafetydoc' id='safetydoc-"+workorder.id+"'>Safety Document</button>";
 			}
@@ -1093,6 +1093,19 @@ $(document).on('click', '#getphotobutton', function(e){
 			quality: 50, 
 			destinationType: Camera.DestinationType.DATA_URL
 		}); 
+});
+
+$(document).on('click', '#showhidedebug', function(e){
+	e.preventDefault();
+	
+	if($('#debug_details').is(":visible")){
+		$('#debug_details').hide();
+		$(this).html("Show debug information");
+	}else{
+		$('#debug_details').show();
+		$(this).html("Hide debug information");
+	}
+
 });
 
 function doReceiptUpload(j){
