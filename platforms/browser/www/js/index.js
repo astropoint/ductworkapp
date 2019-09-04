@@ -56,7 +56,7 @@ function onDeviceReady(){
 		}
 }
 
-var siteURL = "https://ductworkadmindev.duckdns.org";
+var siteURL = "https://dwadmin.dwcompliance.co.uk";
 var apiURL = siteURL+"/api/api.php";
 var isInternet = false;
 var maxUploadSize = 8;
