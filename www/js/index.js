@@ -997,7 +997,6 @@ $(document).on('click', '.submitexpensesbutton:not(.ui-state-disabled)', functio
 	var expensepaymentmethod = $('#expensepaymentmethod').val();
 	var expenseamount = $('#expenseamount').val();
 	var base64encode = $('#receiptphoto').attr('src');
-	console.log(expensedate);
 	var goodform = true;
 	var errors = [];
 	
